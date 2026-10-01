@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Oriflame User Journey Flows</title>
+  <meta name="description" content="Interactive prototype communicating Oriflame customer journeys, with page-level data, challenges and opportunities." />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__brand">
+      <img class="topbar__logo" src="assets/oriflame-logo.svg" alt="Oriflame Sweden" width="139" height="31" />
+      <h1 class="topbar__title" id="app-title">User Journey Flows</h1>
+    </div>
+    <div class="topbar__meta">
+      <span class="topbar__source" id="data-source"></span>
+      <button class="market" type="button" aria-label="Market: United Kingdom">
+        <svg class="market__flag" viewBox="0 0 60 30" width="20" height="15" aria-hidden="true" preserveAspectRatio="none">
+          <clipPath id="uk-s"><path d="M0,0 v30 h60 v-30 z"/></clipPath>
+          <clipPath id="uk-t"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
+          <g clip-path="url(#uk-s)">
+            <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
+            <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+            <path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#uk-t)" stroke="#C8102E" stroke-width="4"/>
+            <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
+            <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
+          </g>
+        </svg>
+        <span id="market-code">UK</span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Journeys">
+    <div class="tabs__list" role="tablist" id="tabs"></div>
+    <span class="tabs__indicator" id="tab-indicator" aria-hidden="true"></span>
+  </nav>
+
+  <main class="stage" id="stage">
+    <div class="canvas" id="canvas" tabindex="0" aria-label="Journey canvas. Drag to pan.">
+      <div class="world" id="world"></div>
+    </div>
+
+    <div class="coming-soon" id="coming-soon" hidden>
+      <svg class="coming-soon__art" viewBox="0 0 320 120" aria-hidden="true">
+        <path class="cs-path" d="M20 60 H90 C110 60 110 30 130 30 H190 C210 30 210 90 230 90 H300" />
+        <rect class="cs-node" x="4" y="44" width="32" height="32" rx="6" />
+        <rect class="cs-node" x="144" y="14" width="32" height="32" rx="6" />
+        <rect class="cs-node" x="284" y="74" width="32" height="32" rx="6" />
+        <circle class="cs-dot" r="5" />
+      </svg>
+      <p class="coming-soon__eyebrow" id="coming-soon-name"></p>
+      <h2 class="coming-soon__title">Coming soon</h2>
+      <p class="coming-soon__body">This journey is being mapped. Check back soon for page-level data, challenges and opportunities.</p>
+    </div>
+
+    <div class="hud hud--left" id="legend">
+      <div class="legend">
+        <span class="legend__item"><span class="legend__swatch legend__swatch--flow"></span>Customer flow</span>
+        <span class="legend__item"><span class="legend__swatch legend__swatch--finding">⚠</span>Findings</span>
+      </div>
+      <p class="hud__hint">Drag to pan · <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + scroll to zoom · Click a page for detail</p>
+    </div>
+
+    <div class="hud hud--right" id="controls">
+      <button class="ctrl ctrl--tour" type="button" id="tour-btn" aria-pressed="false">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path class="tour-play" d="M8 5v14l11-7z" fill="currentColor"/><g class="tour-stop" fill="currentColor"><rect x="7" y="6" width="4" height="12" rx="1"/><rect x="13" y="6" width="4" height="12" rx="1"/></g></svg>
+        <span>Walkthrough</span>
+      </button>
+      <div class="zoom">
+        <button class="ctrl" type="button" id="zoom-out" aria-label="Zoom out">−</button>
+        <span class="zoom__level" id="zoom-level">100%</span>
+        <button class="ctrl" type="button" id="zoom-in" aria-label="Zoom in">+</button>
+        <button class="ctrl" type="button" id="zoom-fit" aria-label="Fit journey to screen">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <div class="scrim" id="scrim" hidden></div>
+  <aside class="flyout" id="flyout" aria-hidden="true" aria-labelledby="fly-title" role="dialog">
+    <button class="flyout__close" type="button" id="fly-close" aria-label="Close page detail">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="flyout__scroll" id="fly-scroll">
+      <div class="flyout__inner">
+        <figure class="shot" id="fly-shot"></figure>
+        <div class="detail" id="fly-detail"></div>
+      </div>
+    </div>
+    <footer class="flyout__nav">
+      <button class="navbtn" type="button" id="fly-prev"><span aria-hidden="true">←</span> <span class="navbtn__label"></span></button>
+      <span class="flyout__step" id="fly-step"></span>
+      <button class="navbtn" type="button" id="fly-next"><span class="navbtn__label"></span> <span aria-hidden="true">→</span></button>
+    </footer>
+  </aside>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
