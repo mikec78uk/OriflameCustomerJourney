@@ -150,6 +150,10 @@ function boxOf(journey, id) {
 }
 
 function anchor(b, side) {
+  // Decisions are upward-pointing triangles (UML), so side connectors meet the slanted edges at mid-height.
+  if (b.kind === 'decision' && (side === 'l' || side === 'r')) {
+    return [side === 'l' ? b.x + b.w / 4 : b.x + (b.w * 3) / 4, b.y + b.h / 2];
+  }
   switch (side) {
     case 'l': return [b.x, b.y + b.h / 2];
     case 't': return [b.x + b.w / 2, b.y];
@@ -267,7 +271,11 @@ function buildCanvas(journey) {
   });
 
   journey.decisions.forEach((d) => {
-    const n = el('div', 'decision', `<span class="decision__shape"></span><span class="decision__label">${escapeHtml(d.label)}</span>`);
+    const n = el('div', 'decision', `
+      <svg class="decision__shape" viewBox="0 0 ${d.size} ${d.size}" aria-hidden="true">
+        <polygon points="${d.size / 2},1.5 ${d.size - 1.5},${d.size - 1.5} 1.5,${d.size - 1.5}" />
+      </svg>
+      <span class="decision__label">${escapeHtml(d.label)}</span>`);
     Object.assign(n.style, { left: `${d.x}px`, top: `${d.y}px`, width: `${d.size}px`, height: `${d.size}px` });
     n.dataset.id = d.id;
     dom.world.appendChild(n);

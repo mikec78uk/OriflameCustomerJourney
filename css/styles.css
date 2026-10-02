@@ -126,11 +126,9 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
 }
 
 .decision { position: absolute; display: grid; place-items: center; pointer-events: none; }
-.decision__shape {
-  position: absolute; inset: 14%; transform: rotate(45deg); border-radius: 6px;
-  background: var(--ori-white); border: 1.5px solid var(--ori-default-dark); box-shadow: var(--ori-shadow-1);
-}
-.decision__label { position: relative; font-size: 10px; text-align: center; line-height: 1.15; color: var(--ori-default-dark); }
+.decision__shape { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 1px 2px rgba(0,0,66,.12)); }
+.decision__shape polygon { fill: var(--ori-white); stroke: var(--ori-default-dark); stroke-width: 1.5; stroke-linejoin: round; }
+.decision__label { position: absolute; left: 0; right: 0; bottom: 9px; font-size: 9px; text-align: center; line-height: 1.1; color: var(--ori-default-dark); white-space: nowrap; }
 
 /* ---------- Page cards ---------- */
 .card {
