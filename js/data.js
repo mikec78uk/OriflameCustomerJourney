@@ -115,4 +115,9 @@ export const journeys = [
     name: 'Brand Partner Onboarding',
     status: 'coming-soon',
   },
+  {
+    id: 'revieve',
+    name: 'Revieve Beauty Tools',
+    status: 'coming-soon',
+  },
 ];
