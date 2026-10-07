@@ -1,2 +1,5 @@
 .DS_Store
 .claude/
+
+# Full-size screenshot originals (may contain personal data); the site uses redacted web JPEGs
+assets/screens/*.png

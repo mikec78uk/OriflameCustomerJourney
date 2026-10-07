@@ -259,6 +259,10 @@ function origins(id) {
   });
 }
 
+// Pages with a screenshot in assets/screens/, named by reference number. The flyout uses the web-sized
+// .jpg copies made by scripts/optimise-screens.sh. CRM emails (E-n) have no screenshots yet.
+const SCREENSHOTS = new Set(Array.from({ length: 38 }, (_, i) => `R-${i + 1}`));
+
 const tbdRows = (rows) => (rows.length ? rows.map((r) => ({ label: r.label, value: TBD })) : [{ label: TBD, value: TBD }]);
 
 nodes.forEach((n) => {
@@ -267,7 +271,7 @@ nodes.forEach((n) => {
   n.next = uniqueOuts.length === 1 && isPage(uniqueOuts[0]) ? byId.get(uniqueOuts[0]).name : TBD;
   n.findings = n.challenges.length || TBD;
   n.detail = {
-    screenshot: null,
+    screenshot: SCREENSHOTS.has(n.ref) ? `assets/screens/${n.ref}.jpg` : null,
     screenshotPending: 'Coming soon',
     description: TBD,
     keyBehaviour: [

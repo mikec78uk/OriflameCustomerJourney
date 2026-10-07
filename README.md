@@ -38,6 +38,8 @@ python3 -m http.server 5173
 
 ## Updating content
 
+**Screenshots:** put full-size PNGs named by reference (e.g. `R-12.png`) in `assets/screens/` and run `scripts/optimise-screens.sh` to create 900px-wide JPEGs for the flyout. The original PNGs are git-ignored. Screenshots of signed-in pages and emails contain personal data (names, emails, phone numbers, account numbers, profile photos, sponsor details), so **redact the JPEGs before committing**. The published R-1 to R-38 JPEGs have already been redacted. List the references with screenshots in `SCREENSHOTS` in `registration.js`.
+
 Registration lives in `js/journeys/registration.js`. Use `page(n, name, x, y, { audience, type, flag, challenges })` for pages, with PDF artboard coordinates. Edges take optional `via` waypoints, `style: 'none'` for a dashed no-direct-connection link, and `flag` for a ⚠ label. When you add real data, replace the `TBD` values and set `detail.screenshot` to an image in `assets/screens/`.
 
 Placeholder content lives in `js/data.js`:
