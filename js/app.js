@@ -31,6 +31,7 @@ const dom = {
   comingSoon: $('#coming-soon'),
   comingSoonName: $('#coming-soon-name'),
   legend: $('#legend'),
+  legendItems: $('#legend .legend'),
   controls: $('#controls'),
   zoomLevel: $('#zoom-level'),
   tourBtn: $('#tour-btn'),
@@ -89,6 +90,17 @@ dom.tabs.addEventListener('scroll', () => moveIndicator(false));
 /* Journey selection                                                   */
 /* ------------------------------------------------------------------ */
 
+const DEFAULT_LEGEND = [
+  { kind: 'flow', label: 'Customer flow' },
+  { kind: 'finding', label: 'Findings' },
+];
+
+function renderLegend(journey) {
+  const items = journey.legend || DEFAULT_LEGEND;
+  dom.legendItems.innerHTML = items.map((i) => `<span class="legend__item"><span class="legend__swatch legend__swatch--${i.kind}">${
+    { finding: '⚠', 'aud-m': 'M', 'aud-brp': 'BrP', delay: ICONS.clock }[i.kind] || ''}</span>${escapeHtml(i.label)}</span>`).join('');
+}
+
 function selectJourney(id, { intro = true, openNode = null } = {}) {
   const journey = journeys.find((j) => j.id === id) || journeys[0];
   const changed = state.journey?.id !== journey.id;
@@ -106,6 +118,7 @@ function selectJourney(id, { intro = true, openNode = null } = {}) {
       showComingSoon(journey);
     } else {
       hideComingSoon();
+      renderLegend(journey);
       buildCanvas(journey);
       state.userMoved = false;
       fitView(false, true);
@@ -139,14 +152,24 @@ function teardownCanvas() {
   state.activeId = null;
 }
 
+const listOf = (journey, key) => journey[key] || [];
+
+// Every placed element on a journey canvas, as boxes keyed by kind.
+function elementBoxes(journey) {
+  return [
+    ...journey.nodes.map((n) => ({ id: n.id, x: n.x, y: n.y, w: n.w, h: n.h, kind: 'node' })),
+    ...listOf(journey, 'decisions').map((d) => ({ id: d.id, x: d.x, y: d.y, w: d.size, h: d.size, kind: 'decision' })),
+    ...listOf(journey, 'groups').map((g) => ({ id: g.id, x: g.x, y: g.y, w: g.w, h: g.h, kind: 'group' })),
+    ...listOf(journey, 'terminals').map((t) => ({ id: t.id, x: t.x, y: t.y, w: t.w, h: t.h, kind: 'terminal' })),
+    ...listOf(journey, 'triggers').map((t) => ({ id: t.id, x: t.x, y: t.y, w: t.w, h: t.h, kind: 'trigger' })),
+    ...listOf(journey, 'notes').map((t) => ({ id: t.id, x: t.x, y: t.y, w: t.w, h: t.h, kind: 'note' })),
+  ];
+}
+
 function boxOf(journey, id) {
-  const n = journey.nodes.find((x) => x.id === id);
-  if (n) return { x: n.x, y: n.y, w: n.w, h: n.h, kind: 'node' };
-  const d = journey.decisions.find((x) => x.id === id);
-  if (d) return { x: d.x, y: d.y, w: d.size, h: d.size, kind: 'decision' };
-  const g = journey.groups.find((x) => x.id === id);
-  if (g) return { x: g.x, y: g.y, w: g.w, h: g.h, kind: 'group' };
-  throw new Error(`Unknown journey element: ${id}`);
+  const b = elementBoxes(journey).find((x) => x.id === id);
+  if (!b) throw new Error(`Unknown journey element: ${id}`);
+  return b;
 }
 
 function anchor(b, side) {
@@ -171,6 +194,16 @@ function routeEdge(journey, e) {
   const tb = boxOf(journey, e.to);
   const [x1, y1] = anchor(fb, fromSide);
   let [x2, y2] = anchor(tb, toSide);
+
+  // Explicit routing: the first and last waypoints snap to the anchors so every segment stays orthogonal.
+  if (e.via?.length) {
+    const pts = [[x1, y1], ...e.via.map((p) => [...p]), [x2, y2]];
+    const first = pts[1];
+    const last = pts[pts.length - 2];
+    if (isHoriz(fromSide)) first[1] = y1; else first[0] = x1;
+    if (isHoriz(toSide)) last[1] = y2; else last[0] = x2;
+    return pts;
+  }
 
   // Keep vertical drops straight when the target is wide enough to receive them.
   if (!isHoriz(fromSide) && !isHoriz(toSide) && x1 > tb.x && x1 < tb.x + tb.w) x2 = x1;
@@ -209,29 +242,56 @@ function roundedPath(pts, radius = 14) {
   return `${d} L${last[0]},${last[1]}`;
 }
 
+const ICONS = {
+  open: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>',
+  email: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path class="clock__hour" d="M12 12V8.5"/><path class="clock__minute" d="M12 12h4"/></svg>',
+  account: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/></svg>',
+};
+
+const findingsLabel = (f) => (typeof f === 'number' ? `${f} Finding${f === 1 ? '' : 's'}` : `${f} Findings`);
+const audienceClass = (a) => `aud aud--${a.code.toLowerCase()}`;
+
+function place(n, b) {
+  Object.assign(n.style, { left: `${b.x}px`, top: `${b.y}px`, width: `${b.w}px`, height: `${b.h}px` });
+  return n;
+}
+
+function cardTags(node) {
+  if (!node.ref) return '';
+  return `<span class="card__tags">
+      <span class="ref">${escapeHtml(node.ref)}</span>
+      ${node.audience ? `<span class="${audienceClass(node.audience)}" title="${escapeHtml(node.audience.label)}">${escapeHtml(node.audience.code)}</span>` : ''}
+      ${node.type === 'email' ? `<span class="kind" title="Email">${ICONS.email}Email</span>` : ''}
+      <span class="card__open" aria-hidden="true">${ICONS.open}</span>
+    </span>`;
+}
+
 function buildCanvas(journey) {
   const { width, height } = journey;
   dom.world.style.width = `${width}px`;
   dom.world.style.height = `${height}px`;
 
-  journey.groups.forEach((g) => {
-    const n = el('div', 'group', `<span class="group__label">${escapeHtml(g.label)}</span>`);
-    Object.assign(n.style, { left: `${g.x}px`, top: `${g.y}px`, width: `${g.w}px`, height: `${g.h}px` });
+  listOf(journey, 'groups').forEach((g) => {
+    const n = place(el('div', 'group', `<span class="group__label">${escapeHtml(g.label)}</span>`), g);
     n.dataset.id = g.id;
     dom.world.appendChild(n);
   });
 
   const svgRoot = svg('svg', { class: 'edges', width, height, viewBox: `0 0 ${width} ${height}` });
   const defs = svg('defs');
-  const marker = (id, cls) => {
+  const marker = (id, fill) => {
     const m = svg('marker', { id, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 9, markerHeight: 9, orient: 'auto-start-reverse', markerUnits: 'userSpaceOnUse' });
-    m.appendChild(svg('path', { d: 'M0,0.5 L10,5 L0,9.5 z', class: cls }));
+    const head = svg('path', { d: 'M0,0.5 L10,5 L0,9.5 z', class: 'arrowhead' });
+    if (fill) head.style.fill = fill;
+    m.appendChild(head);
     return m;
   };
-  defs.appendChild(marker('arrow', 'arrowhead'));
-  const litMarker = marker('arrow-lit', 'arrowhead');
-  litMarker.firstChild.style.fill = 'var(--ori-secondary-main)';
-  defs.appendChild(litMarker);
+  defs.append(
+    marker('arrow'),
+    marker('arrow-lit', 'var(--ori-secondary-main)'),
+    marker('arrow-none', 'var(--flow-none)'),
+  );
   svgRoot.appendChild(defs);
   const edgeLayer = svg('g');
   const particleLayer = svg('g');
@@ -241,10 +301,11 @@ function buildCanvas(journey) {
 
   journey.edges.forEach((e) => {
     const pts = routeEdge(journey, e);
-    const path = svg('path', { d: roundedPath(pts), class: 'edge', 'marker-end': 'url(#arrow)' });
+    const none = e.style === 'none';
+    const path = svg('path', { d: roundedPath(pts), class: `edge${none ? ' edge--none' : ''}`, 'marker-end': none ? 'url(#arrow-none)' : 'url(#arrow)' });
     edgeLayer.appendChild(path);
     const len = path.getTotalLength();
-    const rec = { ...e, path, len, labelEl: null, particles: [], startX: pts[0][0] };
+    const rec = { ...e, path, len, labelEl: null, flagEl: null, particles: [], startX: Math.min(pts[0][0], pts[pts.length - 1][0]) };
 
     if (e.label) {
       const p = path.getPointAtLength(len * (e.labelAt ?? 0.5));
@@ -261,44 +322,88 @@ function buildCanvas(journey) {
       rec.labelEl = t;
     }
 
-    const count = Math.max(1, Math.round(len / 160));
-    for (let i = 0; i < count; i++) {
-      const c = svg('circle', { r: 3, class: 'particle', opacity: 0 });
-      particleLayer.appendChild(c);
-      rec.particles.push(c);
+    if (e.delay) {
+      const p = path.getPointAtLength(len / 2);
+      const d = el('div', 'delay', `<span class="delay__icon" aria-hidden="true">${ICONS.clock}</span>
+        <span class="delay__text"><strong>${escapeHtml(e.delay.wait)}</strong><span>${escapeHtml(e.delay.day)}</span></span>`);
+      d.setAttribute('role', 'note');
+      d.setAttribute('aria-label', `Time delay: ${e.delay.wait} (${e.delay.day})`);
+      Object.assign(d.style, { left: `${p.x}px`, top: `${p.y}px` });
+      dom.world.appendChild(d);
+      rec.delayEl = d;
+    }
+
+    if (e.flag) {
+      const p = path.getPointAtLength(len * (e.flagAt ?? 0.5));
+      const f = el('div', 'flag flag--edge', `<span aria-hidden="true">⚠</span> ${escapeHtml(e.flag)}`);
+      Object.assign(f.style, { left: `${p.x}px`, top: `${p.y}px` });
+      dom.world.appendChild(f);
+      rec.flagEl = f;
+    }
+
+    if (!none) {
+      const count = Math.max(1, Math.round(len / 160));
+      for (let i = 0; i < count; i++) {
+        const c = svg('circle', { r: 3, class: 'particle', opacity: 0 });
+        particleLayer.appendChild(c);
+        rec.particles.push(c);
+      }
     }
     state.edges.push(rec);
   });
 
-  journey.decisions.forEach((d) => {
+  listOf(journey, 'decisions').forEach((d) => {
     const n = el('div', 'decision', `
       <svg class="decision__shape" viewBox="0 0 ${d.size} ${d.size}" aria-hidden="true">
         <polygon points="${d.size / 2},1.5 ${d.size - 1.5},${d.size - 1.5} 1.5,${d.size - 1.5}" />
       </svg>
       <span class="decision__label">${escapeHtml(d.label)}</span>`);
-    Object.assign(n.style, { left: `${d.x}px`, top: `${d.y}px`, width: `${d.size}px`, height: `${d.size}px` });
+    place(n, { x: d.x, y: d.y, w: d.size, h: d.size });
     n.dataset.id = d.id;
     dom.world.appendChild(n);
   });
 
+  listOf(journey, 'terminals').forEach((t) => {
+    const n = place(el('div', `terminal${t.w < 100 ? ' terminal--small' : ''}`,
+      `${t.tag ? `<span class="terminal__tag">${escapeHtml(t.tag)}</span>` : ''}<span class="terminal__label">${escapeHtml(t.label)}</span>`), t);
+    n.dataset.id = t.id;
+    dom.world.appendChild(n);
+  });
+
+  listOf(journey, 'triggers').forEach((t) => {
+    const n = place(el('div', `trigger trigger--${t.variant}`,
+      t.icon
+        ? `<span class="trigger__icon" role="img" aria-label="${escapeHtml(t.label)} icon">${ICONS[t.icon]}</span>`
+        : `${t.caption ? `<span class="trigger__caption">${escapeHtml(t.caption)}</span>` : ''}<span class="trigger__label">${escapeHtml(t.label)}</span>`), t);
+    n.dataset.id = t.id;
+    n.title = `UI element: ${t.caption ? `${t.caption} – ` : ''}${t.label}`;
+    dom.world.appendChild(n);
+  });
+
+  listOf(journey, 'notes').forEach((t) => {
+    const n = place(el('div', 'sticky', `<span class="sticky__text">${escapeHtml(t.text)}</span><span class="sticky__author">${escapeHtml(t.author)}</span>`), t);
+    n.dataset.id = t.id;
+    dom.world.appendChild(n);
+  });
+
   journey.nodes.forEach((node) => {
-    const card = el('button', 'card');
+    const card = el('button', `card${node.ref ? ' card--flow' : ''}${node.type === 'email' ? ' card--email' : ''}`);
     card.type = 'button';
     card.dataset.id = node.id;
-    card.setAttribute('aria-label', `${node.fullName || node.name}: ${node.visits} visits, ${node.rate} to ${node.next}, ${node.findings} findings. Open detail.`);
-    Object.assign(card.style, { left: `${node.x}px`, top: `${node.y}px`, width: `${node.w}px`, height: `${node.h}px` });
+    const title = [node.ref, node.fullName || node.name, node.audience && `(${node.audience.label})`].filter(Boolean).join(' ');
+    card.setAttribute('aria-label', `${title}: ${node.visits} visits, ${node.rate} to ${node.next}, ${findingsLabel(node.findings)}. Open detail.`);
+    place(card, node);
     card.innerHTML = `
       <span class="card__head">
+        ${cardTags(node)}
         <span class="card__name">${escapeHtml(node.name)}</span>
-        <span class="card__open" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
-        </span>
+        ${node.ref ? '' : `<span class="card__open" aria-hidden="true">${ICONS.open}</span>`}
       </span>
       <span class="card__body">
         <span class="card__row"><strong>${escapeHtml(node.visits)}</strong> Visits</span>
-        <span class="card__row"><strong>${escapeHtml(node.rate)}</strong><span class="card__arrow">→</span>${escapeHtml(node.next)}</span>
+        <span class="card__row"><strong>${escapeHtml(node.rate)}</strong><span class="card__arrow">→</span><span class="card__next">${escapeHtml(node.next)}</span></span>
         <span class="card__meter"><span data-w="${parseFloat(node.rate) || 0}"></span></span>
-        <span class="card__findings"><span aria-hidden="true">⚠</span> ${node.findings} Findings</span>
+        <span class="card__findings${typeof node.findings === 'number' ? '' : ' is-tbd'}"><span aria-hidden="true">⚠</span> ${escapeHtml(findingsLabel(node.findings))}</span>
       </span>`;
     card.addEventListener('click', (ev) => {
       if (dragState.suppressClick) { ev.preventDefault(); return; }
@@ -310,11 +415,17 @@ function buildCanvas(journey) {
     card.addEventListener('focus', () => !state.tour && lightEdgesFor(node.id));
     dom.world.appendChild(card);
     state.cards.set(node.id, card);
+
+    if (node.flag) {
+      const f = el('div', 'flag flag--node', `<span aria-hidden="true">⚠</span> ${escapeHtml(node.flag)}`);
+      Object.assign(f.style, { left: `${node.x + node.w / 2}px`, top: `${node.y + node.h + 16}px` });
+      dom.world.appendChild(f);
+    }
   });
 }
 
 function groupMembers(journey, groupId) {
-  const g = journey.groups.find((x) => x.id === groupId);
+  const g = listOf(journey, 'groups').find((x) => x.id === groupId);
   if (!g) return [];
   return journey.nodes
     .filter((n) => n.x >= g.x && n.y >= g.y && n.x + n.w <= g.x + g.w && n.y + n.h <= g.y + g.h)
@@ -331,7 +442,7 @@ function lightEdgesFor(id) {
   state.edges.forEach((e) => {
     const lit = id != null && edgeTouches(e, id);
     e.path.classList.toggle('is-lit', lit);
-    e.path.setAttribute('marker-end', lit ? 'url(#arrow-lit)' : 'url(#arrow)');
+    if (e.style !== 'none') e.path.setAttribute('marker-end', lit ? 'url(#arrow-lit)' : 'url(#arrow)');
   });
 }
 
@@ -354,21 +465,32 @@ function playIntro() {
     startParticles();
     return;
   }
-  const cards = [...state.cards.values()].sort((a, b) => parseFloat(a.style.left) - parseFloat(b.style.left));
+  // Flags and delays are centred with a CSS transform, so they fade in rather than move.
+  const cards = [...dom.world.querySelectorAll('.card, .terminal, .trigger, .sticky, .flag, .delay')]
+    .sort((a, b) => parseFloat(a.style.left) - parseFloat(b.style.left));
   const xs = cards.map((c) => parseFloat(c.style.left));
   const span = Math.max(...xs) - Math.min(...xs) || 1;
   const minX = Math.min(...xs);
-  const total = 1.6;
   const tl = gsap.timeline({ defaults: { ease: 'power3.out' }, onComplete: startParticles });
 
+  const total = span > 4000 ? 2.6 : 1.6;
   tl.from(dom.world.querySelectorAll('.group, .decision'), { opacity: 0, scale: 0.9, duration: 0.6, stagger: 0.1, clearProps: 'opacity,transform' }, 0.3);
   cards.forEach((c, i) => {
     const at = ((xs[i] - minX) / span) * total;
+    if (c.classList.contains('flag') || c.classList.contains('delay')) {
+      tl.from(c, { opacity: 0, duration: 0.5, clearProps: 'opacity' }, at + 0.4);
+      return;
+    }
     tl.from(c, { opacity: 0, y: 28, scale: 0.92, duration: 0.7, clearProps: 'opacity,transform' }, at);
-    tl.to(c.querySelector('.card__meter span'), { width: `${c.querySelector('.card__meter span').dataset.w}%`, duration: 0.9 }, at + 0.35);
+    const meter = c.querySelector('.card__meter span');
+    if (meter) tl.to(meter, { width: `${meter.dataset.w}%`, duration: 0.9 }, at + 0.35);
   });
   state.edges.forEach((e) => {
-    const at = ((e.startX - minX) / span) * total + 0.35;
+    const at = (Math.max(0, e.startX - minX) / span) * total + 0.35;
+    if (e.style === 'none') {
+      tl.from(e.path, { opacity: 0, duration: 0.6, clearProps: 'opacity' }, at + 0.3);
+      return;
+    }
     gsap.set(e.path, { strokeDasharray: e.len, strokeDashoffset: e.len });
     tl.to(e.path, { strokeDashoffset: 0, duration: Math.min(0.9, 0.3 + e.len / 600), ease: 'power2.inOut' }, at);
     tl.set(e.path, { clearProps: 'strokeDasharray,strokeDashoffset' });
@@ -386,6 +508,14 @@ function revealStatic() {
 
 function startParticles() {
   if (reduceMotion) return;
+  dom.world.querySelectorAll('.delay').forEach((d, i) => {
+    const minute = d.querySelector('.clock__minute');
+    const hour = d.querySelector('.clock__hour');
+    state.particles.push(
+      gsap.to(minute, { rotation: 360, svgOrigin: '12 12', duration: 2.4, ease: 'none', repeat: -1, delay: i * 0.3 }),
+      gsap.to(hour, { rotation: 360, svgOrigin: '12 12', duration: 28.8, ease: 'none', repeat: -1, delay: i * 0.3 }),
+    );
+  });
   state.edges.forEach((e) => {
     const duration = Math.max(1.4, e.len / 90);
     e.particles.forEach((p, i) => {
@@ -428,7 +558,7 @@ function tweenCam(target, duration = 0.8, ease = 'power3.inOut') {
 
 function contentBounds() {
   const j = state.journey;
-  const boxes = [...j.nodes, ...j.groups, ...j.decisions.map((d) => ({ x: d.x, y: d.y, w: d.size, h: d.size }))];
+  const boxes = elementBoxes(j);
   const minX = Math.min(...boxes.map((b) => b.x));
   const minY = Math.min(...boxes.map((b) => b.y));
   const maxX = Math.max(...boxes.map((b) => b.x + b.w));
@@ -663,21 +793,29 @@ function renderDetail(node) {
   dom.flyShot.innerHTML = d.screenshot
     ? `<div class="shot__frame is-scrollable" tabindex="0" aria-label="Scrollable screenshot of ${escapeHtml(title)}"><img src="${d.screenshot}" alt="Screenshot of the ${escapeHtml(title)}" /></div>
        <figcaption class="shot__caption" hidden>Scroll to explore the page</figcaption>`
-    : `<div class="shot__frame"><div class="shot__placeholder">
+    : d.screenshotPending
+      ? `<div class="shot__frame shot__frame--pending"><span>${escapeHtml(d.screenshotPending)}</span></div>`
+      : `<div class="shot__frame"><div class="shot__placeholder">
          <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/><circle cx="15.5" cy="8.5" r="1.5"/></svg>
          Screenshot to follow</div></div>`;
 
-  dom.flyDetail.innerHTML = `
+  const tags = node.ref ? `<div class="detail__tags">
+      <span class="ref">${escapeHtml(node.ref)}</span>
+      ${node.audience ? `<span class="${audienceClass(node.audience)}">${escapeHtml(node.audience.code)}</span><span class="detail__aud">${escapeHtml(node.audience.label)}</span>` : ''}
+      ${node.type === 'email' ? `<span class="kind">${ICONS.email}Email</span>` : ''}
+    </div>` : '';
+
+  dom.flyDetail.innerHTML = `${tags}
     <h2 class="detail__title" id="fly-title">${escapeHtml(title)}${d.placeholder ? '<span class="tag">Placeholder data</span>' : ''}</h2>
     <p class="detail__desc">${escapeHtml(d.description)}</p>
     <section class="section"><h3 class="section__title">Key Behaviour</h3>${statList(d.keyBehaviour)}</section>
     <section class="section"><h3 class="section__title">Where did customers come from?</h3>${statList(d.cameFrom)}</section>
     <section class="section"><h3 class="section__title">Where did they go next?</h3>${statList(d.wentNext)}</section>
     <section class="section"><h3 class="section__title">Challenges</h3><div class="notes">
-      ${d.challenges.map((c) => `<div class="note note--challenge"><span>${escapeHtml(c.text)}</span>${c.source ? `<span class="note__meta">${escapeHtml(c.source)}</span>` : ''}</div>`).join('')}
+      ${d.challenges.map((c) => `<div class="note note--challenge">${c.title ? `<span class="note__title">${escapeHtml(c.title)}</span>` : ''}<span>${escapeHtml(c.text)}</span>${c.source ? `<span class="note__meta">${escapeHtml(c.source)}</span>` : ''}</div>`).join('')}
     </div></section>
     <section class="section"><h3 class="section__title">Opportunities</h3><div class="notes">
-      ${d.opportunities.map((o) => `<div class="note note--opportunity"><span class="note__title">${escapeHtml(o.title)}</span><span>${escapeHtml(o.text)}</span></div>`).join('')}
+      ${d.opportunities.map((o) => `<div class="note note--opportunity">${o.title ? `<span class="note__title">${escapeHtml(o.title)}</span>` : ''}<span>${escapeHtml(o.text)}</span></div>`).join('')}
     </div></section>`;
 
   const nodes = state.journey.nodes;
@@ -687,8 +825,9 @@ function renderDetail(node) {
   dom.flyStep.textContent = `${idx + 1} / ${nodes.length}`;
   dom.flyPrev.disabled = !prev;
   dom.flyNext.disabled = !next;
-  dom.flyPrev.querySelector('.navbtn__label').textContent = prev ? prev.name : '';
-  dom.flyNext.querySelector('.navbtn__label').textContent = next ? next.name : '';
+  const navName = (n) => (n ? [n.ref, n.name].filter(Boolean).join(' ') : '');
+  dom.flyPrev.querySelector('.navbtn__label').textContent = navName(prev);
+  dom.flyNext.querySelector('.navbtn__label').textContent = navName(next);
   dom.flyPrev.onclick = () => prev && openFlyout(prev);
   dom.flyNext.onclick = () => next && openFlyout(next);
 }

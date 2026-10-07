@@ -4,15 +4,18 @@ Interactive prototype for communicating Oriflame customer journeys. Each journey
 
 **Live:** https://mikec78uk.github.io/OriflameCustomerJourney/
 
-> All figures are placeholder values taken from the Figma wireframes.
+> **Registration** is final-deliverable content, transcribed from *User Flow Registration.pdf*. Anything not yet known is shown as **TBD**, and screenshots are marked *Coming soon*.
+> **Core Transactional Journey** still uses placeholder values from the Figma wireframes.
 
 ## Features
 
-- **Journeys:** Core Transactional Journey (from Figma) and Brand Partner Onboarding (coming soon), switched by tabs
+- **Journeys:** Registration, Core Transactional Journey (placeholder), and Brand Partner Onboarding / Revieve Beauty Tools (coming soon), switched by tabs
+- **Reference numbers:** every Registration page has a reference (R-1 … R-38) and an audience badge: **M** = Member, **BrP** = Brand Partner
+- **User-flow key:** start/end points, steps, email steps, UI elements, notes, direct connections and dashed *no direct connection* links with ⚠ findings
 - **Canvas:** drag to pan, <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + scroll or pinch to zoom, zoom controls and fit-to-screen
 - **Walkthrough:** a guided camera tour through every step of the journey
 - **Page flyout:** animated stats, traffic sources and destinations, challenges and opportunities, with prev/next navigation (← → keys)
-- **Deep links:** `#core/plp` opens a journey straight to a page
+- **Deep links:** `#registration/r-6` opens a journey straight to a page
 - Animated with [GSAP](https://gsap.com/) (intro sequence, connector draw-on, traffic particles via MotionPath, camera moves)
 - Styled with Oriflame's *Flourish* design tokens and the SansOri typeface (Inter fallback)
 
@@ -21,7 +24,8 @@ Interactive prototype for communicating Oriflame customer journeys. Each journey
 ```
 index.html          App shell
 css/styles.css      Flourish design tokens + component styles
-js/data.js          Journey content: pages, positions, connectors, detail data
+js/data.js          Journey list + Core Transactional Journey placeholder content
+js/journeys/        Final journey content (registration.js)
 js/app.js           Rendering, camera, animation, flyout
 assets/             Logo, favicon, page screenshots
 ```
@@ -34,7 +38,9 @@ python3 -m http.server 5173
 
 ## Updating content
 
-All content lives in `js/data.js`:
+Registration lives in `js/journeys/registration.js`. Use `page(n, name, x, y, { audience, type, flag, challenges })` for pages, with PDF artboard coordinates. Edges take optional `via` waypoints, `style: 'none'` for a dashed no-direct-connection link, and `flag` for a ⚠ label. When you add real data, replace the `TBD` values and set `detail.screenshot` to an image in `assets/screens/`.
+
+Placeholder content lives in `js/data.js`:
 
 - **Pages:** add or edit entries in `coreNodes` (`x`/`y` are canvas positions, matching Figma)
 - **Connectors:** `coreEdges` (`from`/`to` ids, optional `fromSide`/`toSide` of `t`/`r`/`b`/`l`, and an optional `label`)

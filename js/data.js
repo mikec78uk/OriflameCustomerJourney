@@ -1,4 +1,6 @@
-// Journey content. All figures are placeholder values taken from the Figma wireframes
+import { registration } from './journeys/registration.js';
+
+// Journey content. Core Transactional Journey figures are placeholder values taken from the Figma wireframes
 // (Figma file ouyzjeKmWbwAY8r0IazvNt). Swap these out for real GA data as it becomes available.
 
 export const meta = {
@@ -99,6 +101,7 @@ const coreEdges = [
 ];
 
 export const journeys = [
+  registration,
   {
     id: 'core',
     name: 'Core Transactional Journey',
