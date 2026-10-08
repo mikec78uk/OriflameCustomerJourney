@@ -6,42 +6,15 @@
 // The end of the flow (welcome emails broken out + CRM email sequence) follows a later update
 // to the source, placed on the same grid.
 
-const TBD = 'TBD';
-const OX = 60;
-const OY = 60;
-const W = 240;
-const H = 170;
-const PDF_CARD_H = 128;
+import { artboard, finalize, FLOW_LEGEND, SOURCE as source } from './flow.js';
 
-const pdf = ([x, y]) => [x - OX, y - OY];
+const { page: flowPage, terminal, trigger, edge: e } = artboard({ ox: 60, oy: 60 });
 
-// Audiences: M = Member, BrP = Brand Partner (shown as "BP" in the source PDF).
-const AUDIENCES = {
-  M: { code: 'M', label: 'Member' },
-  BrP: { code: 'BrP', label: 'Brand Partner' },
-};
-
-const source = 'User flow review';
-
-function page(n, name, x, y, { audience = null, type = 'step', challenges = [], flag = null, prefix = 'R' } = {}) {
-  // CRM emails (E-n) share a number across Member and Brand Partner variants, so their ids include the audience.
-  const id = prefix === 'R' ? `r-${n}` : `${prefix.toLowerCase()}-${n}-${audience.toLowerCase()}`;
-  return {
-    id,
-    ref: `${prefix}-${n}`,
-    name,
-    audience: audience ? AUDIENCES[audience] : null,
-    type, // 'step' | 'email' (purple in the source key)
-    flag,
-    challenges,
-    x: x - OX,
-    y: y + PDF_CARD_H / 2 - H / 2 - OY, // keep the PDF card centre so connectors line up
-    w: W,
-    h: H,
-    visits: TBD,
-    rate: TBD,
-  };
-}
+// R-n pages; CRM emails (E-n) share a number across Member and Brand Partner variants, so their ids include the audience.
+const page = (n, name, x, y, { prefix = 'R', ...opts } = {}) => flowPage(`${prefix}-${n}`, name, x, y, {
+  ...opts,
+  id: prefix === 'R' ? `r-${n}` : `${prefix.toLowerCase()}-${n}-${opts.audience.toLowerCase()}`,
+});
 
 const nodes = [
   page(1, 'Global landing page', 440, 616),
@@ -113,10 +86,6 @@ const nodes = [
 ];
 
 // Start / end points (yellow circles in the source key).
-function terminal(id, label, cx, cy, { d = 150, tag = null } = {}) {
-  return { id, label, tag, x: cx - d / 2 - OX, y: cy - d / 2 - OY, w: d, h: d };
-}
-
 const terminals = [
   terminal('email-comms', 'Email communications', 204, 157, { tag: 'TBC' }),
   terminal('url-uk', 'Typing URL uk.oriflame.com', 200, 384),
@@ -127,10 +96,6 @@ const terminals = [
 ];
 
 // UI elements on UK Home that lead into registration.
-function trigger(id, label, x, y, w, h, { variant = 'light', caption = null, icon = null } = {}) {
-  return { id, label, caption, icon, variant, x: x - OX, y: y - OY, w, h };
-}
-
 const triggers = [
   trigger('ui-discover-signup', 'Sign Up', 1368, 468, 120, 82, { variant: 'dark', caption: 'Discover' }),
   trigger('ui-signup-button', 'SIGN UP', 1366, 642, 127, 76),
@@ -142,8 +107,6 @@ const notes = [];
 
 // Connectors. `via` points are PDF coordinates; the first and last are snapped to the anchors.
 // `style: 'none'` = "No direct connection" (dashed in the source key).
-const e = (from, to, opts = {}) => ({ from, to, ...opts, via: opts.via?.map(pdf) });
-
 // Welcome email → E-1 → E-2 → E-3. `delay` marks time passing before the next send.
 const crmSequence = (welcome, aud) => [
   e(welcome, `e-1-${aud}`, { delay: { wait: '+3 days', day: 'Day 4' } }),
@@ -222,69 +185,11 @@ const edges = [
   e('r-22', 'end-brp'),
 ];
 
-/* ---------- Derived content: card summaries and flyout detail ---------- */
-
-const byId = new Map([...nodes, ...terminals, ...triggers].map((x) => [x.id, x]));
-const isPage = (id) => nodes.some((n) => n.id === id);
-const pageLabel = (n) => `${n.ref} ${n.name}`;
-const triggerName = (t) => (t.icon ? `${t.label} icon` : [t.caption, t.label].filter(Boolean).join(' – '));
-const direct = edges.filter((x) => x.style !== 'none');
-
-function describe(id) {
-  const x = byId.get(id);
-  if (isPage(id)) return pageLabel(x);
-  if (id === 'end-brp') return 'Becomes a Brand Partner (BrP)';
-  return x.label;
-}
-
-// Where a page sends people, looking through UI elements to the pages behind them.
-function destinations(id) {
-  return direct.filter((x) => x.from === id).flatMap((x) => {
-    const target = byId.get(x.to);
-    if (triggers.includes(target)) {
-      return direct.filter((y) => y.from === x.to).map((y) => ({ id: y.to, label: `${describe(y.to)} (via “${triggerName(target)}”)` }));
-    }
-    const delay = x.delay ? ` (after ${x.delay.wait}, ${x.delay.day})` : '';
-    return [{ id: x.to, label: `${describe(x.to)}${delay}` }];
-  });
-}
-
-function origins(id) {
-  return direct.filter((x) => x.to === id).flatMap((x) => {
-    const src = byId.get(x.from);
-    if (triggers.includes(src)) {
-      return direct.filter((y) => y.to === x.from).map((y) => ({ id: y.from, label: `${describe(y.from)} (via “${triggerName(src)}”)` }));
-    }
-    return [{ id: x.from, label: describe(x.from) }];
-  });
-}
-
-// Pages with a screenshot in assets/screens/, named by reference number. The flyout uses the web-sized
-// .jpg copies made by scripts/optimise-screens.sh. CRM emails (E-n) have no screenshots yet.
+// Pages with a screenshot in assets/screens/, named by reference number (redacted web JPEGs).
+// CRM emails (E-n) have no screenshots yet.
 const SCREENSHOTS = new Set(Array.from({ length: 38 }, (_, i) => `R-${i + 1}`));
 
-const tbdRows = (rows) => (rows.length ? rows.map((r) => ({ label: r.label, value: TBD })) : [{ label: TBD, value: TBD }]);
-
-nodes.forEach((n) => {
-  const outs = destinations(n.id);
-  const uniqueOuts = [...new Set(outs.map((o) => o.id))];
-  n.next = uniqueOuts.length === 1 && isPage(uniqueOuts[0]) ? byId.get(uniqueOuts[0]).name : TBD;
-  n.findings = n.challenges.length || TBD;
-  n.detail = {
-    screenshot: SCREENSHOTS.has(n.ref) ? `assets/screens/${n.ref}.jpg` : null,
-    screenshotPending: 'Coming soon',
-    description: TBD,
-    keyBehaviour: [
-      { label: 'Page Views', value: TBD },
-      { label: 'Conversion to next step', value: TBD },
-      { label: 'Exit rate', value: TBD },
-    ],
-    cameFrom: tbdRows(origins(n.id)),
-    wentNext: tbdRows(outs),
-    challenges: n.challenges.length ? n.challenges : [{ text: TBD }],
-    opportunities: [{ text: TBD }],
-  };
-});
+finalize({ nodes, terminals, triggers, edges, screenshots: SCREENSHOTS, describeTerminal: { 'end-brp': 'Becomes a Brand Partner (BrP)' } });
 
 export const registration = {
   id: 'registration',
@@ -299,16 +204,5 @@ export const registration = {
   decisions: [],
   groups: [],
   edges,
-  legend: [
-    { kind: 'terminal', label: 'Start / End' },
-    { kind: 'step', label: 'Step' },
-    { kind: 'email', label: 'Email' },
-    { kind: 'trigger', label: 'UI element' },
-    { kind: 'aud-m', label: 'Member' },
-    { kind: 'aud-brp', label: 'Brand Partner' },
-    { kind: 'flow', label: 'Direct connection' },
-    { kind: 'none', label: 'No direct connection' },
-    { kind: 'delay', label: 'Time delay' },
-    { kind: 'finding', label: 'Finding' },
-  ],
+  legend: FLOW_LEGEND,
 };

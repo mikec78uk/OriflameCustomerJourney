@@ -4,13 +4,13 @@ Interactive prototype for communicating Oriflame customer journeys. Each journey
 
 **Live:** https://mikec78uk.github.io/OriflameCustomerJourney/
 
-> **Registration** is final-deliverable content, transcribed from *User Flow Registration.pdf*. Anything not yet known is shown as **TBD**, and screenshots are marked *Coming soon*.
+> **Registration** and **Newsletter** are final-deliverable content, transcribed from *User Flow Registration.pdf* and *User Journey Newsletter.pdf*. Anything not yet known is shown as **TBD**, and screenshots are marked *Coming soon*.
 > **Core Transactional Journey** still uses placeholder values from the Figma wireframes.
 
 ## Features
 
-- **Journeys:** Registration, Core Transactional Journey (placeholder), and Brand Partner Onboarding / Revieve Beauty Tools (coming soon), switched by tabs
-- **Reference numbers:** every Registration page has a reference (R-1 … R-38) and an audience badge: **M** = Member, **BrP** = Brand Partner
+- **Journeys:** Registration, Newsletter, Core Transactional Journey (placeholder), and Brand Partner Onboarding / Revieve Beauty Tools (coming soon), switched by tabs
+- **Reference numbers:** pages have references (R-1 … R-38, E-1 … E-3, NL-1 … NL-6) and an audience badge: **M** = Member, **BrP** = Brand Partner
 - **User-flow key:** start/end points, steps, email steps, UI elements, notes, direct connections and dashed *no direct connection* links with ⚠ findings
 - **Canvas:** drag to pan, <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + scroll or pinch to zoom, zoom controls and fit-to-screen
 - **Walkthrough:** a guided camera tour through every step of the journey
@@ -25,7 +25,7 @@ Interactive prototype for communicating Oriflame customer journeys. Each journey
 index.html          App shell
 css/styles.css      Flourish design tokens + component styles
 js/data.js          Journey list + Core Transactional Journey placeholder content
-js/journeys/        Final journey content (registration.js)
+js/journeys/        Final journey content (registration.js, newsletter.js) + shared flow helpers (flow.js)
 js/app.js           Rendering, camera, animation, flyout
 assets/             Logo, favicon, page screenshots
 ```
@@ -38,9 +38,9 @@ python3 -m http.server 5173
 
 ## Updating content
 
-**Screenshots:** put full-size PNGs named by reference (e.g. `R-12.png`) in `assets/screens/` and run `scripts/optimise-screens.sh` to create 900px-wide JPEGs for the flyout. The original PNGs are git-ignored. Screenshots of signed-in pages and emails contain personal data (names, emails, phone numbers, account numbers, profile photos, sponsor details), so **redact the JPEGs before committing**. The published R-1 to R-38 JPEGs have already been redacted. List the references with screenshots in `SCREENSHOTS` in `registration.js`.
+**Screenshots:** put full-size PNGs named by reference (e.g. `R-12.png`) in `assets/screens/` and run `scripts/optimise-screens.sh` to create 900px-wide JPEGs for the flyout. The original PNGs are git-ignored. Screenshots of signed-in pages and emails contain personal data (names, emails, phone numbers, account numbers, profile photos, sponsor details), so **redact the JPEGs before committing**. The published R- and NL- JPEGs have already been redacted. List the references with screenshots in each journey's `SCREENSHOTS` set.
 
-Registration lives in `js/journeys/registration.js`. Use `page(n, name, x, y, { audience, type, flag, challenges })` for pages, with PDF artboard coordinates. Edges take optional `via` waypoints, `style: 'none'` for a dashed no-direct-connection link, and `flag` for a ⚠ label. When you add real data, replace the `TBD` values and set `detail.screenshot` to an image in `assets/screens/`.
+User-flow journeys live in `js/journeys/` and are built with `artboard()` and `finalize()` from `flow.js`. Use `page(ref, name, x, y, { audience, type, flag, challenges })` for pages, with PDF artboard coordinates, plus `terminal`, `trigger` (UI element) and `ghost` (expected but doesn't exist yet). Edges take optional `via` waypoints, `style: 'none'` for a dashed no-direct-connection link, `flag` for a ⚠ label and `delay: { wait, day }` for a time delay. `finalize()` derives the card summaries and the flyout's sources and destinations from the flow. When you add real data, replace the `TBD` values and set `detail.screenshot` to an image in `assets/screens/`.
 
 Placeholder content lives in `js/data.js`:
 

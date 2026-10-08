@@ -163,6 +163,7 @@ function elementBoxes(journey) {
     ...listOf(journey, 'terminals').map((t) => ({ id: t.id, x: t.x, y: t.y, w: t.w, h: t.h, kind: 'terminal' })),
     ...listOf(journey, 'triggers').map((t) => ({ id: t.id, x: t.x, y: t.y, w: t.w, h: t.h, kind: 'trigger' })),
     ...listOf(journey, 'notes').map((t) => ({ id: t.id, x: t.x, y: t.y, w: t.w, h: t.h, kind: 'note' })),
+    ...listOf(journey, 'ghosts').map((t) => ({ id: t.id, x: t.x, y: t.y, w: t.w, h: t.h, kind: 'ghost' })),
   ];
 }
 
@@ -258,9 +259,9 @@ function place(n, b) {
 }
 
 function cardTags(node) {
-  if (!node.ref) return '';
+  if (!node.flow) return '';
   return `<span class="card__tags">
-      <span class="ref">${escapeHtml(node.ref)}</span>
+      ${node.ref ? `<span class="ref">${escapeHtml(node.ref)}</span>` : ''}
       ${node.audience ? `<span class="${audienceClass(node.audience)}" title="${escapeHtml(node.audience.label)}">${escapeHtml(node.audience.code)}</span>` : ''}
       ${node.type === 'email' ? `<span class="kind" title="Email">${ICONS.email}Email</span>` : ''}
       <span class="card__open" aria-hidden="true">${ICONS.open}</span>
@@ -325,9 +326,9 @@ function buildCanvas(journey) {
     if (e.delay) {
       const p = path.getPointAtLength(len / 2);
       const d = el('div', 'delay', `<span class="delay__icon" aria-hidden="true">${ICONS.clock}</span>
-        <span class="delay__text"><strong>${escapeHtml(e.delay.wait)}</strong><span>${escapeHtml(e.delay.day)}</span></span>`);
+        <span class="delay__text"><strong>${escapeHtml(e.delay.wait)}</strong>${e.delay.day ? `<span>${escapeHtml(e.delay.day)}</span>` : ''}</span>`);
       d.setAttribute('role', 'note');
-      d.setAttribute('aria-label', `Time delay: ${e.delay.wait} (${e.delay.day})`);
+      d.setAttribute('aria-label', `Time delay: ${[e.delay.wait, e.delay.day].filter(Boolean).join(', ')}`);
       Object.assign(d.style, { left: `${p.x}px`, top: `${p.y}px` });
       dom.world.appendChild(d);
       rec.delayEl = d;
@@ -380,6 +381,12 @@ function buildCanvas(journey) {
     dom.world.appendChild(n);
   });
 
+  listOf(journey, 'ghosts').forEach((t) => {
+    const n = place(el('div', 'ghost', `<span class="ghost__label">${escapeHtml(t.label)}</span><span class="ghost__caption">${escapeHtml(t.caption)}</span>`), t);
+    n.dataset.id = t.id;
+    dom.world.appendChild(n);
+  });
+
   listOf(journey, 'notes').forEach((t) => {
     const n = place(el('div', 'sticky', `<span class="sticky__text">${escapeHtml(t.text)}</span><span class="sticky__author">${escapeHtml(t.author)}</span>`), t);
     n.dataset.id = t.id;
@@ -387,7 +394,7 @@ function buildCanvas(journey) {
   });
 
   journey.nodes.forEach((node) => {
-    const card = el('button', `card${node.ref ? ' card--flow' : ''}${node.type === 'email' ? ' card--email' : ''}`);
+    const card = el('button', `card${node.flow ? ' card--flow' : ''}${node.type === 'email' ? ' card--email' : ''}`);
     card.type = 'button';
     card.dataset.id = node.id;
     const title = [node.ref, node.fullName || node.name, node.audience && `(${node.audience.label})`].filter(Boolean).join(' ');
@@ -397,7 +404,7 @@ function buildCanvas(journey) {
       <span class="card__head">
         ${cardTags(node)}
         <span class="card__name">${escapeHtml(node.name)}</span>
-        ${node.ref ? '' : `<span class="card__open" aria-hidden="true">${ICONS.open}</span>`}
+        ${node.flow ? '' : `<span class="card__open" aria-hidden="true">${ICONS.open}</span>`}
       </span>
       <span class="card__body">
         <span class="card__row"><strong>${escapeHtml(node.visits)}</strong> Visits</span>
@@ -466,7 +473,7 @@ function playIntro() {
     return;
   }
   // Flags and delays are centred with a CSS transform, so they fade in rather than move.
-  const cards = [...dom.world.querySelectorAll('.card, .terminal, .trigger, .sticky, .flag, .delay')]
+  const cards = [...dom.world.querySelectorAll('.card, .terminal, .trigger, .sticky, .ghost, .flag, .delay')]
     .sort((a, b) => parseFloat(a.style.left) - parseFloat(b.style.left));
   const xs = cards.map((c) => parseFloat(c.style.left));
   const span = Math.max(...xs) - Math.min(...xs) || 1;
@@ -799,8 +806,8 @@ function renderDetail(node) {
          <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/><circle cx="15.5" cy="8.5" r="1.5"/></svg>
          Screenshot to follow</div></div>`;
 
-  const tags = node.ref ? `<div class="detail__tags">
-      <span class="ref">${escapeHtml(node.ref)}</span>
+  const tags = node.flow ? `<div class="detail__tags">
+      ${node.ref ? `<span class="ref">${escapeHtml(node.ref)}</span>` : ''}
       ${node.audience ? `<span class="${audienceClass(node.audience)}">${escapeHtml(node.audience.code)}</span><span class="detail__aud">${escapeHtml(node.audience.label)}</span>` : ''}
       ${node.type === 'email' ? `<span class="kind">${ICONS.email}Email</span>` : ''}
     </div>` : '';
