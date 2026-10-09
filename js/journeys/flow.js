@@ -34,10 +34,12 @@ export function artboard({ ox = 60, oy = 60 } = {}) {
   const pdf = ([x, y]) => [x - ox, y - oy];
   return {
     pdf,
-    page(ref, name, x, y, { id = ref.toLowerCase(), audience = null, type = 'step', challenges = [], flag = null } = {}) {
+    // `screenshot` overrides the image name when a page appears differently in this journey.
+    page(ref, name, x, y, { id = ref.toLowerCase(), audience = null, type = 'step', challenges = [], flag = null, screenshot = null } = {}) {
       return {
         id,
         ref,
+        screenshot,
         flow: true,
         name,
         audience: audience ? AUDIENCES[audience] : null,
@@ -107,7 +109,8 @@ export function finalize({ nodes, terminals = [], triggers = [], ghosts = [], ed
     n.next = uniqueOuts.length === 1 && isPage(uniqueOuts[0]) ? byId.get(uniqueOuts[0]).name : TBD;
     n.findings = n.challenges.length || TBD;
     n.detail = {
-      screenshot: n.ref && screenshots.has(n.ref) ? `assets/screens/${n.ref}.jpg` : null,
+      screenshot: n.screenshot ? `assets/screens/${n.screenshot}.jpg`
+        : n.ref && screenshots.has(n.ref) ? `assets/screens/${n.ref}.jpg` : null,
       screenshotPending: 'Coming soon',
       description: TBD,
       keyBehaviour: [

@@ -1,5 +1,6 @@
 import { registration } from './journeys/registration.js';
 import { newsletter } from './journeys/newsletter.js';
+import { training } from './journeys/training.js';
 
 // Journey content. Core Transactional Journey figures are placeholder values taken from the Figma wireframes
 // (Figma file ouyzjeKmWbwAY8r0IazvNt). Swap these out for real GA data as it becomes available.
@@ -104,6 +105,7 @@ const coreEdges = [
 export const journeys = [
   registration,
   newsletter,
+  training,
   {
     id: 'core',
     name: 'Core Transactional Journey',
@@ -114,11 +116,6 @@ export const journeys = [
     decisions: coreDecisions,
     groups: coreGroups,
     edges: coreEdges,
-  },
-  {
-    id: 'brand-partner',
-    name: 'Brand Partner Onboarding',
-    status: 'coming-soon',
   },
   {
     id: 'revieve',

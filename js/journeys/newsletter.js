@@ -7,6 +7,9 @@ import { artboard, finalize, FLOW_LEGEND, SOURCE as source } from './flow.js';
 
 const { page, terminal, ghost, edge: e } = artboard({ ox: 80, oy: 60 });
 
+// The logged-in Member / Brand Partner routes moved right to make room for NL-7 (later source update).
+const S = 269;
+
 const nodes = [
   page('NL-1', 'UK Home (Footer)', 840, 304, {
     challenges: [{
@@ -17,18 +20,19 @@ const nodes = [
   }),
   page('NL-2', 'Welcome to Oriflame!', 1285, 304, { type: 'email' }),
   page('NL-5', 'Unsubscribe', 1285, 690),
+  page('NL-7', 'Discover beauty and wellness with Oriflame!', 1700, 304, { type: 'email' }),
 
   // Logged in as Member
-  page('R-19', 'My Account', 1817, 299, { audience: 'M' }),
-  page('R-25', 'What’s New', 2137, 299, { audience: 'M' }),
-  page('NL-3', 'Newsletter', 2137, 505, { audience: 'M' }),
-  page('NL-4.1', '“Start your side hustle…”', 2489, 505, { id: 'nl-4-1', audience: 'M' }),
-  page('NL-4.2', '“Spotted in the press…”', 2489, 690, { id: 'nl-4-2', audience: 'M' }),
+  page('R-19', 'My Account', 1817 + S, 299, { audience: 'M' }),
+  page('R-25', 'What’s New', 2137 + S, 299, { audience: 'M' }),
+  page('NL-3', 'Newsletter', 2137 + S, 505, { audience: 'M' }),
+  page('NL-4.1', '“Start your side hustle…”', 2489 + S, 505, { id: 'nl-4-1', audience: 'M' }),
+  page('NL-4.2', '“Spotted in the press…”', 2489 + S, 690, { id: 'nl-4-2', audience: 'M' }),
 
   // Logged in as Brand Partner
-  page('R-35', 'My Account (Dashboard)', 2942, 294, { audience: 'BrP' }),
-  { ...page('', 'What’s New', 3261, 294, { id: 'whats-new-brp', audience: 'BrP' }), ref: null }, // no reference in the source
-  page('NL-6', 'Newsletter', 3261, 501, { audience: 'BrP' }),
+  page('R-35', 'My Account (Dashboard)', 2942 + S, 294, { audience: 'BrP' }),
+  { ...page('', 'What’s New', 3261 + S, 294, { id: 'whats-new-brp', audience: 'BrP' }), ref: null }, // no reference in the source
+  page('NL-6', 'Newsletter', 3261 + S, 501, { audience: 'BrP' }),
 ];
 
 const terminals = [
@@ -44,20 +48,21 @@ const edges = [
   e('nl-1', 'nl-2', { delay: { wait: 'After 2h' } }),
   e('nl-1', 'confirmation-email', { fromSide: 'b', toSide: 't', style: 'none', flag: 'No immediate confirmation' }),
   e('nl-2', 'nl-5', { fromSide: 'b', toSide: 't' }),
+  e('nl-2', 'nl-7', { delay: { wait: 'After 3 days' } }),
 
-  e('nl-1', 'r-19', { fromSide: 't', toSide: 't', via: [[960, 226], [1937, 226]], label: 'Logged in as Member', labelAt: 0.45 }),
+  e('nl-1', 'r-19', { fromSide: 't', toSide: 't', via: [[960, 226], [1937 + S, 226]], label: 'Logged in as Member', labelAt: 0.45 }),
   e('r-19', 'r-25'),
   e('r-25', 'nl-3', { fromSide: 'b', toSide: 't' }),
   e('nl-3', 'nl-4-1'),
-  e('nl-3', 'nl-4-2', { via: [[2434, 569], [2434, 754]] }),
+  e('nl-3', 'nl-4-2', { via: [[2434 + S, 569], [2434 + S, 754]] }),
 
-  e('nl-1', 'r-35', { fromSide: 't', toSide: 't', via: [[960, 162], [3062, 162]], label: 'Logged in as Brand Partner', labelAt: 0.6 }),
+  e('nl-1', 'r-35', { fromSide: 't', toSide: 't', via: [[960, 162], [3062 + S, 162]], label: 'Logged in as Brand Partner', labelAt: 0.6 }),
   e('r-35', 'whats-new-brp'),
   e('whats-new-brp', 'nl-6', { fromSide: 'b', toSide: 't' }),
 ];
 
 // Screenshots in assets/screens/ (redacted web JPEGs), named by reference number.
-const SCREENSHOTS = new Set(['NL-1', 'NL-2', 'NL-3', 'NL-4.1', 'NL-4.2', 'NL-5', 'NL-6', 'R-19', 'R-25', 'R-35']);
+const SCREENSHOTS = new Set(['NL-1', 'NL-2', 'NL-3', 'NL-4.1', 'NL-4.2', 'NL-5', 'NL-6', 'NL-7', 'R-19', 'R-25', 'R-35']);
 
 finalize({ nodes, terminals, ghosts, edges, screenshots: SCREENSHOTS });
 
@@ -65,7 +70,7 @@ export const newsletter = {
   id: 'newsletter',
   name: 'Newsletter',
   status: 'ready',
-  width: 3560,
+  width: 3830,
   height: 880,
   nodes,
   terminals,
