@@ -9,7 +9,7 @@ import { crm } from './journeys/crm.js';
 export const meta = {
   title: 'User Journey Flows',
   source: 'Google Analytics',
-  dateRange: '1 Oct 2025 - 30 Sep 2026',
+  dateRange: '30 Sep 2025 - 30 Sep 2026',
   market: { code: 'UK', name: 'United Kingdom' },
 };
 

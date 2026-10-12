@@ -404,7 +404,11 @@ function buildCanvas(journey) {
     card.type = 'button';
     card.dataset.id = node.id;
     const title = [node.ref, node.fullName || node.name, node.audience && `(${node.audience.label})`].filter(Boolean).join(' ');
-    card.setAttribute('aria-label', `${title}: ${node.visits} visits, ${node.rate} to ${node.next}, ${findingsLabel(node.findings)}. Open detail.`);
+    // Journeys can hide traffic metrics (visits, conversion, sources/destinations) until real data exists.
+    const metrics = journey.metrics !== false;
+    const summary = metrics ? `${node.visits} visits, ${node.rate} to ${node.next}, ` : '';
+    card.setAttribute('aria-label', `${title}: ${summary}${findingsLabel(node.findings)}. Open detail.`);
+    if (!metrics) card.classList.add('card--no-metrics');
     place(card, node);
     card.innerHTML = `
       <span class="card__head">
@@ -413,9 +417,9 @@ function buildCanvas(journey) {
         ${node.flow ? '' : `<span class="card__open" aria-hidden="true">${ICONS.open}</span>`}
       </span>
       <span class="card__body">
-        <span class="card__row"><strong>${escapeHtml(node.visits)}</strong> Visits</span>
+        ${metrics ? `<span class="card__row"><strong>${escapeHtml(node.visits)}</strong> Visits</span>
         <span class="card__row"><strong>${escapeHtml(node.rate)}</strong><span class="card__arrow">→</span><span class="card__next">${escapeHtml(node.next)}</span></span>
-        <span class="card__meter"><span data-w="${parseFloat(node.rate) || 0}"></span></span>
+        <span class="card__meter"><span data-w="${parseFloat(node.rate) || 0}"></span></span>` : ''}
         <span class="card__findings${typeof node.findings === 'number' ? '' : ' is-tbd'}"><span aria-hidden="true">⚠</span> ${escapeHtml(findingsLabel(node.findings))}</span>
       </span>`;
     card.addEventListener('click', (ev) => {
@@ -515,7 +519,7 @@ function playIntro() {
 function revealStatic() {
   state.cards.forEach((c) => {
     const m = c.querySelector('.card__meter span');
-    m.style.width = `${m.dataset.w}%`;
+    if (m) m.style.width = `${m.dataset.w}%`;
   });
 }
 
@@ -821,9 +825,10 @@ function renderDetail(node) {
   dom.flyDetail.innerHTML = `${tags}
     <h2 class="detail__title" id="fly-title">${escapeHtml(title)}${d.placeholder ? '<span class="tag">Placeholder data</span>' : ''}</h2>
     <p class="detail__desc">${escapeHtml(d.description)}</p>
+    ${state.journey.metrics !== false ? `
     <section class="section"><h3 class="section__title">Key Behaviour</h3>${statList(d.keyBehaviour)}</section>
     <section class="section"><h3 class="section__title">Where did customers come from?</h3>${statList(d.cameFrom)}</section>
-    <section class="section"><h3 class="section__title">Where did they go next?</h3>${statList(d.wentNext)}</section>
+    <section class="section"><h3 class="section__title">Where did they go next?</h3>${statList(d.wentNext)}</section>` : ''}
     <section class="section"><h3 class="section__title">Challenges</h3><div class="notes">
       ${d.challenges.map((c) => `<div class="note note--challenge">${c.title ? `<span class="note__title">${escapeHtml(c.title)}</span>` : ''}<span>${escapeHtml(c.text)}</span>${c.source ? `<span class="note__meta">${escapeHtml(c.source)}</span>` : ''}</div>`).join('')}
     </div></section>

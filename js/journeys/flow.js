@@ -14,8 +14,9 @@ export const AUDIENCES = {
 export const SOURCE = 'User flow review';
 
 const W = 240;
-const H = 170;
 const PDF_CARD_H = 128;
+// Card height: taller when cards show traffic metrics (visits, conversion), compact otherwise.
+const CARD_H = { metrics: 170, compact: 130 };
 
 export const FLOW_LEGEND = [
   { kind: 'terminal', label: 'Start / End' },
@@ -34,8 +35,9 @@ export const FLOW_LEGEND = [
 
 // Placement helpers on a PDF artboard. Coordinates are PDF pixels; `ox`/`oy` shift them onto the canvas.
 // Page `y` values are the PDF card tops; cards keep the PDF card centre so connectors line up.
-export function artboard({ ox = 60, oy = 60 } = {}) {
+export function artboard({ ox = 60, oy = 60, metrics = false } = {}) {
   const pdf = ([x, y]) => [x - ox, y - oy];
+  const H = metrics ? CARD_H.metrics : CARD_H.compact;
   return {
     pdf,
     // `screenshot` overrides the image name when a page appears differently in this journey.

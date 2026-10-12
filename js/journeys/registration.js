@@ -246,6 +246,7 @@ export const registration = {
   id: 'registration',
   name: 'Registration',
   status: 'ready',
+  metrics: false, // hide visits, conversion and traffic sources/destinations until real data is available
   width: 7000,
   height: 2420,
   nodes,

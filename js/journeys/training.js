@@ -90,6 +90,7 @@ export const training = {
   id: 'brand-partner-training',
   name: 'Brand Partner Training (Onboarding)',
   status: 'ready',
+  metrics: false, // hide visits, conversion and traffic sources/destinations until real data is available
   width: 4260,
   height: 1720,
   nodes,

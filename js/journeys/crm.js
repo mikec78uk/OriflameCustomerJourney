@@ -161,6 +161,7 @@ export const crm = {
   id: 'crm',
   name: 'CRM journeys',
   status: 'ready',
+  metrics: false, // hide visits, conversion and traffic sources/destinations until real data is available
   width: 3020,
   height: 3520,
   nodes,

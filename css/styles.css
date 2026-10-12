@@ -218,6 +218,7 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
 .card--flow .card__tags { flex-wrap: wrap; row-gap: 3px; }
 .card--email .kind { border-color: var(--ori-info-main); color: var(--ori-info-dark); background: var(--ori-white); }
 .card__next { overflow: hidden; text-overflow: ellipsis; }
+.card--no-metrics .card__body { justify-content: center; }
 .card__findings.is-tbd { background: var(--ori-grey-100); border-color: var(--ori-grey-300); color: var(--ori-text-secondary); }
 
 .terminal {

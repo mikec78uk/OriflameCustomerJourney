@@ -84,6 +84,7 @@ export const newsletter = {
   id: 'newsletter',
   name: 'Newsletter',
   status: 'ready',
+  metrics: false, // hide visits, conversion and traffic sources/destinations until real data is available
   width: 4220,
   height: 880,
   nodes,
