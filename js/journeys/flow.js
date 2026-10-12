@@ -1,6 +1,8 @@
 // Shared building blocks for user-flow journeys transcribed from PDF user-flow artboards
 // (see "Key to read userflow.pdf"). Final-deliverable content: anything not yet known is TBD.
 
+import { DESCRIPTIONS } from './descriptions.js';
+
 export const TBD = 'TBD';
 
 // Audiences: M = Member, BrP = Brand Partner (shown as "BP" in the source PDFs).
@@ -19,9 +21,11 @@ export const FLOW_LEGEND = [
   { kind: 'terminal', label: 'Start / End' },
   { kind: 'step', label: 'Step' },
   { kind: 'email', label: 'Email' },
+  { kind: 'push', label: 'Push / SMS / WhatsApp' },
   { kind: 'trigger', label: 'UI element' },
   { kind: 'aud-m', label: 'Member' },
   { kind: 'aud-brp', label: 'Brand Partner' },
+  { kind: 'decision', label: 'Decision' },
   { kind: 'flow', label: 'Direct connection' },
   { kind: 'none', label: 'No direct connection' },
   { kind: 'delay', label: 'Time delay' },
@@ -35,11 +39,18 @@ export function artboard({ ox = 60, oy = 60 } = {}) {
   return {
     pdf,
     // `screenshot` overrides the image name when a page appears differently in this journey.
-    page(ref, name, x, y, { id = ref.toLowerCase(), audience = null, type = 'step', challenges = [], flag = null, screenshot = null } = {}) {
+    // `type`: 'step' | 'email' | 'push' (phone-shaped: push, SMS or WhatsApp). `channels` lists every channel
+    // a CRM send uses, e.g. ['Email', 'Push']. `description` comes from source documents (default TBD).
+    page(ref, name, x, y, {
+      id = ref.toLowerCase(), audience = null, type = 'step', challenges = [], flag = null, screenshot = null,
+      channels = null, description = null,
+    } = {}) {
       return {
         id,
         ref,
         screenshot,
+        channels,
+        description,
         flow: true,
         name,
         audience: audience ? AUDIENCES[audience] : null,
@@ -62,6 +73,10 @@ export function artboard({ ox = 60, oy = 60 } = {}) {
     trigger(id, label, x, y, w, h, { variant = 'light', caption = null, icon = null } = {}) {
       return { id, label, caption, icon, variant, x: x - ox, y: y - oy, w, h };
     },
+    // UML decision (triangle), placed by centre.
+    decision(id, label, cx, cy, { size = 100 } = {}) {
+      return { id, label, size, x: cx - size / 2 - ox, y: cy - size / 2 - oy };
+    },
     // Something the flow expects but that doesn't exist yet (dashed outline in the source).
     ghost(id, label, x, y, { caption = 'Does not exist yet', w = W, h = PDF_CARD_H } = {}) {
       return { id, label, caption, x: x - ox, y: y - oy, w, h };
@@ -75,20 +90,25 @@ export function artboard({ ox = 60, oy = 60 } = {}) {
 }
 
 // Fills in card summaries and flyout detail from the flow itself.
-export function finalize({ nodes, terminals = [], triggers = [], ghosts = [], edges, screenshots = new Set(), describeTerminal = {} }) {
-  const byId = new Map([...nodes, ...terminals, ...triggers, ...ghosts].map((x) => [x.id, x]));
+export function finalize({ nodes, terminals = [], triggers = [], ghosts = [], decisions = [], edges, screenshots = new Set(), describeTerminal = {} }) {
+  const byId = new Map([...nodes, ...terminals, ...triggers, ...ghosts, ...decisions].map((x) => [x.id, x]));
   const isPage = (id) => nodes.some((n) => n.id === id);
   const pageLabel = (n) => (n.ref ? `${n.ref} ${n.name}` : n.name);
   const triggerName = (t) => (t.icon ? `${t.label} icon` : [t.caption, t.label].filter(Boolean).join(' – '));
   const direct = edges.filter((x) => x.style !== 'none');
   const describe = (id) => (isPage(id) ? pageLabel(byId.get(id)) : describeTerminal[id] || byId.get(id).label);
-  const delayText = (d) => (d ? ` (after ${[d.wait, d.day].filter(Boolean).join(', ')})` : '');
+  const delayText = (d) => (d ? ` (${[d.wait, d.day].filter(Boolean).join(', ')})` : '');
 
-  // Where a page sends people, looking through UI elements to the pages behind them.
+  const branch = (d, y) => ` (${d.label}${y.label ? ` ${y.label}` : ''})`;
+
+  // Where a page sends people, looking through UI elements and decisions to the pages behind them.
   const destinations = (id) => direct.filter((x) => x.from === id).flatMap((x) => {
     const target = byId.get(x.to);
     if (triggers.includes(target)) {
       return direct.filter((y) => y.from === x.to).map((y) => ({ id: y.to, label: `${describe(y.to)} (via “${triggerName(target)}”)` }));
+    }
+    if (decisions.includes(target)) {
+      return direct.filter((y) => y.from === x.to).map((y) => ({ id: y.to, label: `${describe(y.to)}${branch(target, y)}${delayText(y.delay)}` }));
     }
     return [{ id: x.to, label: `${describe(x.to)}${delayText(x.delay)}` }];
   });
@@ -97,6 +117,9 @@ export function finalize({ nodes, terminals = [], triggers = [], ghosts = [], ed
     const src = byId.get(x.from);
     if (triggers.includes(src)) {
       return direct.filter((y) => y.to === x.from).map((y) => ({ id: y.from, label: `${describe(y.from)} (via “${triggerName(src)}”)` }));
+    }
+    if (decisions.includes(src)) {
+      return direct.filter((y) => y.to === x.from).map((y) => ({ id: y.from, label: `${describe(y.from)}${branch(src, x)}` }));
     }
     return [{ id: x.from, label: describe(x.from) }];
   });
@@ -112,7 +135,8 @@ export function finalize({ nodes, terminals = [], triggers = [], ghosts = [], ed
       screenshot: n.screenshot ? `assets/screens/${n.screenshot}.jpg`
         : n.ref && screenshots.has(n.ref) ? `assets/screens/${n.ref}.jpg` : null,
       screenshotPending: 'Coming soon',
-      description: TBD,
+      // Journey-specific text first, then the shared description for the page's screenshot, reference or id.
+      description: n.description || DESCRIPTIONS[n.screenshot] || DESCRIPTIONS[n.ref] || DESCRIPTIONS[n.id] || TBD,
       keyBehaviour: [
         { label: 'Page Views', value: TBD },
         { label: 'Conversion to next step', value: TBD },

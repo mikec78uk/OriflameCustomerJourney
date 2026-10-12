@@ -133,7 +133,7 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
 .decision { position: absolute; display: grid; place-items: center; pointer-events: none; }
 .decision__shape { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 1px 2px rgba(0,0,66,.12)); }
 .decision__shape polygon { fill: var(--ori-white); stroke: var(--ori-default-dark); stroke-width: 1.5; stroke-linejoin: round; }
-.decision__label { position: absolute; left: 0; right: 0; bottom: 9px; font-size: 9px; text-align: center; line-height: 1.1; color: var(--ori-default-dark); white-space: nowrap; }
+.decision__label { position: absolute; left: 22%; right: 22%; bottom: 9%; font-size: 9px; text-align: center; line-height: 1.15; color: var(--ori-default-dark); }
 
 /* ---------- Page cards ---------- */
 .card {
@@ -206,6 +206,16 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
 }
 .card--email .card__head { background: var(--ori-info-light); border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0; }
 .card--email.is-active::before, .card--email:hover::before { filter: drop-shadow(0 -2px 3px rgba(0,0,66,.08)); }
+/* Push / SMS / WhatsApp steps read as phones: rounded body with a speaker notch. */
+.card--push { border-radius: 18px; border-color: var(--ori-primary-dark); }
+.card--push::before {
+  content: ''; position: absolute; top: 5px; left: 50%; width: 34px; height: 4px; margin-left: -17px;
+  border-radius: 2px; background: var(--ori-grey-300); z-index: 1;
+}
+.card--push .card__head { background: var(--ori-primary-light); padding-top: 14px; }
+.card--push .card__body { border-radius: 0 0 17px 17px; }
+.card--push .kind { border-color: var(--ori-primary-dark); color: var(--ori-primary-dark); background: var(--ori-white); }
+.card--flow .card__tags { flex-wrap: wrap; row-gap: 3px; }
 .card--email .kind { border-color: var(--ori-info-main); color: var(--ori-info-dark); background: var(--ori-white); }
 .card__next { overflow: hidden; text-overflow: ellipsis; }
 .card__findings.is-tbd { background: var(--ori-grey-100); border-color: var(--ori-grey-300); color: var(--ori-text-secondary); }
@@ -279,6 +289,8 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
   content: ''; position: absolute; left: -1px; right: -1px; bottom: 100%; height: 6px;
   background: no-repeat center / 100% 100% url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 6' preserveAspectRatio='none'%3E%3Cpath d='M0.5 6 L8 0.5 L15.5 6' fill='%23e9f1f7' stroke='%232774ae' stroke-width='1'/%3E%3C/svg%3E");
 }
+.legend__swatch--push { width: 9px; height: 14px; border-radius: 3px; border: 1.5px solid var(--ori-primary-dark); background: var(--ori-primary-light); }
+.legend__swatch--decision { width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 12px solid var(--ori-default-dark); }
 .legend__swatch--trigger { width: 16px; height: 11px; border-radius: 3px; background: var(--ori-default-dark); }
 .legend__swatch--aud-m, .legend__swatch--aud-brp { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 999px; }
 .legend__swatch--aud-m { background: var(--ori-info-light); color: var(--ori-info-dark); }

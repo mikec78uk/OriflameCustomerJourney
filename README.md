@@ -5,13 +5,14 @@ Interactive prototype for communicating Oriflame customer journeys. Each journey
 **Live:** https://mikec78uk.github.io/OriflameCustomerJourney/
 
 > **Registration**, **Newsletter** and **Brand Partner Training (Onboarding)** are final-deliverable content, transcribed from their user-flow PDFs. Anything not yet known is shown as **TBD**, and screenshots are marked *Coming soon*.
+> CRM emails from *CRM journeys overview (BCM markets) 2025* are added to the flows they belong to; live journeys not triggered by site actions are on the **CRM journeys** tab.
 > **Core Transactional Journey** still uses placeholder values from the Figma wireframes.
 
 ## Features
 
-- **Journeys:** Registration, Newsletter, Brand Partner Training (Onboarding), Core Transactional Journey (placeholder) and Revieve Beauty Tools (coming soon), switched by tabs
-- **Reference numbers:** pages have references (R-1 … R-38, E-1 … E-3, NL-1 … NL-7, O-1 … O-15) and an audience badge: **M** = Member, **BrP** = Brand Partner
-- **User-flow key:** start/end points, steps, email steps, UI elements, notes, direct connections and dashed *no direct connection* links with ⚠ findings
+- **Journeys:** Registration, Newsletter, Brand Partner Training (Onboarding), CRM journeys, Core Transactional Journey (placeholder) and Revieve Beauty Tools (coming soon), switched by tabs
+- **Reference numbers:** pages have references (R-1 … R-38, E-1 … E-6, P-1, NL-1 … NL-8, O-1 … O-15, CRM-n.n) and an audience badge: **M** = Member, **BrP** = Brand Partner
+- **User-flow key:** start/end points, steps, envelope-shaped email steps, phone-shaped push/SMS/WhatsApp steps, UML decisions, UI elements, direct connections and dashed *no direct connection* links with ⚠ findings
 - **Canvas:** drag to pan, <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + scroll or pinch to zoom, zoom controls and fit-to-screen
 - **Walkthrough:** a guided camera tour through every step of the journey
 - **Page flyout:** animated stats, traffic sources and destinations, challenges and opportunities, with prev/next navigation (← → keys)
@@ -25,7 +26,7 @@ Interactive prototype for communicating Oriflame customer journeys. Each journey
 index.html          App shell
 css/styles.css      Flourish design tokens + component styles
 js/data.js          Journey list + Core Transactional Journey placeholder content
-js/journeys/        Final journey content (registration.js, newsletter.js, training.js) + shared flow helpers (flow.js)
+js/journeys/        Final journey content (registration.js, newsletter.js, training.js, crm.js) + shared flow helpers (flow.js)
 js/app.js           Rendering, camera, animation, flyout
 assets/             Logo, favicon, page screenshots
 ```

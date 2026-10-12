@@ -97,5 +97,5 @@ export const training = {
   decisions: [],
   groups: [],
   edges,
-  legend: FLOW_LEGEND.filter((i) => !['trigger', 'email', 'aud-m', 'delay'].includes(i.kind)),
+  legend: FLOW_LEGEND.filter((i) => !['trigger', 'email', 'push', 'decision', 'aud-m', 'delay'].includes(i.kind)),
 };

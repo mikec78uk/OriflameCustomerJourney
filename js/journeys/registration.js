@@ -8,7 +8,11 @@
 
 import { artboard, finalize, FLOW_LEGEND, SOURCE as source } from './flow.js';
 
-const { page: flowPage, terminal, trigger, edge: e } = artboard({ ox: 60, oy: 60 });
+const { page: flowPage, terminal, trigger, decision, edge: e } = artboard({ ox: 60, oy: 60 });
+
+// CRM email content and timings from "CRM journeys overview (BCM markets) 2025".
+const CRM = 'CRM journeys overview (BCM markets) 2025';
+const WELCOME_DAY1 = `Welcome journey, Day 1 – Email 1 “Welcome to Community & enjoy benefits” (${CRM}). 5 versions depending on whether the 1st order was placed, Member or BrP, and registration with or without invitation. With order: welcome to the Community and X hearts. Without order: 15% off the 1st order for Members; benefits overview for BrPs; free delivery for Members who registered without invitation; general welcome and benefits overview for those whose order doesn't qualify for welcome Hearts.`;
 
 // R-n pages; CRM emails (E-n) share a number across Member and Brand Partner variants, so their ids include the audience.
 const page = (n, name, x, y, { prefix = 'R', ...opts } = {}) => flowPage(`${prefix}-${n}`, name, x, y, {
@@ -45,7 +49,7 @@ const nodes = [
   page(14, 'Almost there!', 3846, 892, { audience: 'M' }),
   page(15, 'Survey', 4178, 892, { audience: 'M' }),
   page(16, 'Welcome!', 4510, 892, { audience: 'M' }),
-  page(17, 'Welcome to Oriflame!', 5112, 1800, { audience: 'M', type: 'email' }),
+  page(17, 'Welcome to Oriflame!', 5112, 1800, { audience: 'M', type: 'email', description: WELCOME_DAY1 }),
   page(18, 'Home', 5112, 892, { audience: 'M' }),
   page(19, 'My Account', 5112, 1133, { audience: 'M' }),
   page(20, 'Connect with leaders', 5112, 1326, { audience: 'M' }),
@@ -68,20 +72,48 @@ const nodes = [
   page(31, 'Almost there!', 4178, 488, { audience: 'BrP' }),
   page(32, 'Survey', 4510, 488, { audience: 'BrP' }),
   page(33, 'Congratulations', 4808, 488, { audience: 'BrP' }),
-  page(34, 'Welcome to Oriflame!', 5112, 215, { audience: 'BrP', type: 'email' }),
+  page(34, 'Welcome to Oriflame!', 5112, 215, { audience: 'BrP', type: 'email', description: WELCOME_DAY1 }),
   page(35, 'My Account (Dashboard)', 5112, 488, { audience: 'BrP' }),
   page(36, 'Business Tools Register [Register new Brand Partners]', 5844, 488, { audience: 'BrP' }),
   page(37, 'Business Tools Register [Register a VIP Customer]', 5844, 681, { audience: 'BrP' }),
   page(38, 'Business Tools Register [Activate registered consultants]', 5844, 860, { audience: 'BrP' }),
 
-  // CRM email sequence after the welcome email (variants of the same email per audience)
+  // CRM Welcome journey after the welcome email (variants of the same email per audience)
   ...['M', 'BrP'].flatMap((audience) => {
     const y = audience === 'M' ? 1800 : 215;
+    const email = { audience, type: 'email', prefix: 'E' };
     return [
-      page(1, 'Perks Introduction', 5538, y, { audience, type: 'email', prefix: 'E' }),
-      page(2, 'Products Introduction', 5989, y, { audience, type: 'email', prefix: 'E' }),
-      page(3, 'Earn and Share + Personal Invite Code', 6386, y, { audience, type: 'email', prefix: 'E' }),
+      page(1, 'Beauty Rewards intro & motivation to place 1st order', 5538, y, {
+        ...email,
+        description: `Welcome journey, Day 4 – Email 2 (${CRM}). “Have you already started collecting hearts?” Step-by-step guide to Beauty Rewards (app, earn and redeem). No first order yet: 15% 1st-order reminder focused on Best offers / eCatalogue for Members, or 20% immediate discount for BrPs. 3 versions depending on whether the 1st order was placed, and Member or BrP.`,
+      }),
+      page(2, 'Oriflame products introduction', 5989, y, {
+        ...email,
+        description: `Welcome journey, Day 7 – Email 3 (${CRM}). Oriflame brands, iconic products, NovAge+, the Skincare diagnostic tool and Wellosophy (skincare routines, wellness and iconic products). A/B test of 2 email versions.`,
+      }),
+      page(3, 'Share & Earn communication', 6700, y, {
+        ...email,
+        description: `Welcome journey, Day 10 – Email 4 (${CRM}), sent when an order has been placed. Share & Earn with a personal Invite Code; versions for Members and BrPs.`,
+      }),
+      page(4, '1st collected hearts communication', 6700, y + 255, {
+        ...email,
+        description: `Welcome journey (${CRM}): sent the next day after the 1st purchase, to all segments, if the purchase is made from 7 days to 9 months after registration. Congratulations on the first X hearts and Beauty Rewards Programme intro.`,
+      }),
     ];
+  }),
+
+  // CRM Members Upgrade journey: Members who don't complete the upgrade (R-22)
+  page(5, 'Upgrade to Brand Partner', 6060, 1549, {
+    audience: 'M', type: 'email', prefix: 'E',
+    description: `Members Upgrade journey – Email 1, sent immediately (${CRM}). Promotes Brand Partner benefits, business opportunities and the compensation plan, with an Upgrade to Brand Partner CTA. Journey triggers: Member is a Sponsor, active during the last 3 campaigns, with at least 2 first-line members who made purchases; visited/engaged with the “Upgrade to Brand Partner” pages and had at least 1 order within the 4 months before; last 3 orders total 200 BPs or more; completion of the Welcome Programme.`,
+  }),
+  page(6, 'Reminder to upgrade', 6460, 1549, {
+    audience: 'M', type: 'email', prefix: 'E', flag: 'To be added later',
+    description: `Members Upgrade journey – Email 2 (${CRM}), sent X weeks later to Members who haven't upgraded yet. Reminder of the upgrade opportunity, emphasising Brand Partner benefits and earning opportunities. Marked “To be added later” in the CRM overview.`,
+  }),
+  page(1, 'Upgrade to Brand Partner', 6820, 1549, {
+    audience: 'M', type: 'push', prefix: 'P', flag: 'To be added later',
+    description: `Members Upgrade journey – Push sent with the reminder email (${CRM}). Marked “To be added later” in the CRM overview.`,
   }),
 ];
 
@@ -92,7 +124,9 @@ const terminals = [
   terminal('url-global', 'Typing URL oriflame.com', 200, 576),
   terminal('google', 'Google Search Results', 200, 880),
   terminal('ai-tools', 'AI Tools Referral Links', 204, 1080),
-  terminal('end-brp', 'BrP', 5876, 1613, { d: 64 }),
+  terminal('end-brp', 'BrP', 5830, 1430, { d: 64 }),
+  terminal('exit-csj-brp', 'Exit journey · added to Campaign Support Journey', 6380, 720, { d: 150 }),
+  terminal('exit-csj-m', 'Exit journey · added to Campaign Support Journey', 6380, 2310, { d: 150 }),
 ];
 
 // UI elements on UK Home that lead into registration.
@@ -105,14 +139,27 @@ const triggers = [
 
 const notes = [];
 
+const decisions = [
+  decision('order-placed-brp', 'Order placed?', 6380, 279),
+  decision('order-placed-m', 'Order placed?', 6380, 1864),
+  decision('upgraded', 'Upgraded?', 5830, 1613),
+];
+
 // Connectors. `via` points are PDF coordinates; the first and last are snapped to the anchors.
 // `style: 'none'` = "No direct connection" (dashed in the source key).
-// Welcome email → E-1 → E-2 → E-3. `delay` marks time passing before the next send.
-const crmSequence = (welcome, aud) => [
-  e(welcome, `e-1-${aud}`, { delay: { wait: '+3 days', day: 'Day 4' } }),
-  e(`e-1-${aud}`, `e-2-${aud}`, { delay: { wait: '+6 days', day: 'Day 7' } }),
-  e(`e-2-${aud}`, `e-3-${aud}`, { delay: { wait: '+9 days', day: 'Day 10' } }),
-];
+// CRM Welcome journey: welcome email → E-1 → E-2 → Order placed? (Yes → E-3; No → exit to Campaign Support
+// Journey) plus E-4 the day after a 1st purchase. `delay` marks time passing before the next send.
+const crmSequence = (welcome, aud) => {
+  const y = aud === 'm' ? 1864 : 279;
+  return [
+    e(welcome, `e-1-${aud}`, { delay: { wait: '+3 days', day: 'Day 4' } }),
+    e(`e-1-${aud}`, `e-2-${aud}`, { delay: { wait: '+6 days', day: 'Day 7' } }),
+    e(`e-2-${aud}`, `order-placed-${aud}`),
+    e(`order-placed-${aud}`, `e-3-${aud}`, { label: 'Yes', labelAt: 0.12, delay: { wait: '+9 days', day: 'Day 10' }, delayAt: 0.6 }),
+    e(`order-placed-${aud}`, `exit-csj-${aud}`, { fromSide: 'b', toSide: 't', label: 'No', labelAt: 0.82 }),
+    e(`order-placed-${aud}`, `e-4-${aud}`, { fromSide: 'b', via: [[6380, y + 255]], delay: { wait: 'Next day', day: 'after 1st purchase' }, delayAt: 0.72 }),
+  ];
+};
 
 const edges = [
   // Entry points
@@ -182,26 +229,30 @@ const edges = [
   e('r-19', 'r-23'),
   e('r-23', 'r-24'),
   e('r-21', 'r-22'),
-  e('r-22', 'end-brp'),
+  e('r-22', 'upgraded'),
+  e('upgraded', 'end-brp', { fromSide: 't', toSide: 'b', label: 'Yes' }),
+  e('upgraded', 'e-5-m', { label: 'No', labelAt: 0.15, delay: { wait: 'Immediately' }, delayAt: 0.62 }),
+  e('e-5-m', 'e-6-m', { delay: { wait: 'After X weeks' } }),
+  e('e-6-m', 'p-1-m'),
 ];
 
 // Pages with a screenshot in assets/screens/, named by reference number (redacted web JPEGs).
 // CRM emails (E-n) have no screenshots yet.
 const SCREENSHOTS = new Set(Array.from({ length: 38 }, (_, i) => `R-${i + 1}`));
 
-finalize({ nodes, terminals, triggers, edges, screenshots: SCREENSHOTS, describeTerminal: { 'end-brp': 'Becomes a Brand Partner (BrP)' } });
+finalize({ nodes, terminals, triggers, decisions, edges, screenshots: SCREENSHOTS, describeTerminal: { 'end-brp': 'Becomes a Brand Partner (BrP)' } });
 
 export const registration = {
   id: 'registration',
   name: 'Registration',
   status: 'ready',
-  width: 6700,
-  height: 1960,
+  width: 7000,
+  height: 2420,
   nodes,
   terminals,
   triggers,
   notes,
-  decisions: [],
+  decisions,
   groups: [],
   edges,
   legend: FLOW_LEGEND,

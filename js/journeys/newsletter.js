@@ -7,8 +7,11 @@ import { artboard, finalize, FLOW_LEGEND, SOURCE as source } from './flow.js';
 
 const { page, terminal, ghost, edge: e } = artboard({ ox: 80, oy: 60 });
 
-// The logged-in Member / Brand Partner routes moved right to make room for NL-7 (later source update).
-const S = 269;
+// The logged-in Member / Brand Partner routes moved right to make room for NL-7 and NL-8 (later updates).
+const S = 653;
+
+// Leads welcome journey timings and content from "CRM journeys overview (BCM markets) 2025" (marked WIP there).
+const CRM = 'CRM journeys overview (BCM markets) 2025';
 
 const nodes = [
   page('NL-1', 'UK Home (Footer)', 840, 304, {
@@ -18,9 +21,19 @@ const nodes = [
       source,
     }],
   }),
-  page('NL-2', 'Welcome to Oriflame!', 1285, 304, { type: 'email' }),
+  page('NL-2', 'Welcome to Oriflame!', 1285, 304, {
+    type: 'email',
+    description: `Leads welcome journey – first email, sent automatically after newsletter sign-up (${CRM}; journey marked WIP). In this user flow it arrived after 2 hours.`,
+  }),
   page('NL-5', 'Unsubscribe', 1285, 690),
-  page('NL-7', 'Discover beauty and wellness with Oriflame!', 1700, 304, { type: 'email' }),
+  page('NL-7', 'Discover beauty and wellness with Oriflame!', 1700, 304, {
+    type: 'email',
+    description: `Leads welcome journey – Day 3 email (${CRM}; journey marked WIP).`,
+  }),
+  page('NL-8', 'Free delivery on your first order', 2120, 304, {
+    type: 'email',
+    description: `Leads welcome journey – Day 6 email (${CRM}; journey marked WIP): free delivery on the first order, “Beauty favourites” product picks and “You might also like” suggestions. Title translated from the Czech example in the overview; no UK version captured yet.`,
+  }),
 
   // Logged in as Member
   page('R-19', 'My Account', 1817 + S, 299, { audience: 'M' }),
@@ -49,6 +62,7 @@ const edges = [
   e('nl-1', 'confirmation-email', { fromSide: 'b', toSide: 't', style: 'none', flag: 'No immediate confirmation' }),
   e('nl-2', 'nl-5', { fromSide: 'b', toSide: 't' }),
   e('nl-2', 'nl-7', { delay: { wait: 'After 3 days' } }),
+  e('nl-7', 'nl-8', { delay: { wait: 'After 3 days', day: 'Day 6' } }),
 
   e('nl-1', 'r-19', { fromSide: 't', toSide: 't', via: [[960, 226], [1937 + S, 226]], label: 'Logged in as Member', labelAt: 0.45 }),
   e('r-19', 'r-25'),
@@ -70,7 +84,7 @@ export const newsletter = {
   id: 'newsletter',
   name: 'Newsletter',
   status: 'ready',
-  width: 3830,
+  width: 4220,
   height: 880,
   nodes,
   terminals,
@@ -78,5 +92,5 @@ export const newsletter = {
   decisions: [],
   groups: [],
   edges,
-  legend: FLOW_LEGEND.filter((i) => i.kind !== 'trigger').concat({ kind: 'ghost', label: 'Does not exist yet' }),
+  legend: FLOW_LEGEND.filter((i) => !['trigger', 'push', 'decision'].includes(i.kind)).concat({ kind: 'ghost', label: 'Does not exist yet' }),
 };

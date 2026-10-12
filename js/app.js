@@ -246,12 +246,18 @@ function roundedPath(pts, radius = 14) {
 const ICONS = {
   open: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>',
   email: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg>',
+  phone: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>',
   clock: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path class="clock__hour" d="M12 12V8.5"/><path class="clock__minute" d="M12 12h4"/></svg>',
   account: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/></svg>',
 };
 
 const findingsLabel = (f) => (typeof f === 'number' ? `${f} Finding${f === 1 ? '' : 's'}` : `${f} Findings`);
 const audienceClass = (a) => `aud aud--${a.code.toLowerCase()}`;
+
+// Channel chips for CRM sends: an explicit list, or implied by the step type.
+const channelsOf = (n) => n.channels || (n.type === 'email' ? ['Email'] : n.type === 'push' ? ['Push'] : []);
+const channelChips = (n) => channelsOf(n)
+  .map((c) => `<span class="kind" title="${escapeHtml(c)}">${c === 'Email' ? ICONS.email : ICONS.phone}${escapeHtml(c)}</span>`).join('');
 
 function place(n, b) {
   Object.assign(n.style, { left: `${b.x}px`, top: `${b.y}px`, width: `${b.w}px`, height: `${b.h}px` });
@@ -263,7 +269,7 @@ function cardTags(node) {
   return `<span class="card__tags">
       ${node.ref ? `<span class="ref">${escapeHtml(node.ref)}</span>` : ''}
       ${node.audience ? `<span class="${audienceClass(node.audience)}" title="${escapeHtml(node.audience.label)}">${escapeHtml(node.audience.code)}</span>` : ''}
-      ${node.type === 'email' ? `<span class="kind" title="Email">${ICONS.email}Email</span>` : ''}
+      ${channelChips(node)}
       <span class="card__open" aria-hidden="true">${ICONS.open}</span>
     </span>`;
 }
@@ -324,7 +330,7 @@ function buildCanvas(journey) {
     }
 
     if (e.delay) {
-      const p = path.getPointAtLength(len / 2);
+      const p = path.getPointAtLength(len * (e.delayAt ?? 0.5));
       const d = el('div', 'delay', `<span class="delay__icon" aria-hidden="true">${ICONS.clock}</span>
         <span class="delay__text"><strong>${escapeHtml(e.delay.wait)}</strong>${e.delay.day ? `<span>${escapeHtml(e.delay.day)}</span>` : ''}</span>`);
       d.setAttribute('role', 'note');
@@ -394,7 +400,7 @@ function buildCanvas(journey) {
   });
 
   journey.nodes.forEach((node) => {
-    const card = el('button', `card${node.flow ? ' card--flow' : ''}${node.type === 'email' ? ' card--email' : ''}`);
+    const card = el('button', `card${node.flow ? ' card--flow' : ''}${node.type === 'email' ? ' card--email' : ''}${node.type === 'push' ? ' card--push' : ''}`);
     card.type = 'button';
     card.dataset.id = node.id;
     const title = [node.ref, node.fullName || node.name, node.audience && `(${node.audience.label})`].filter(Boolean).join(' ');
@@ -809,7 +815,7 @@ function renderDetail(node) {
   const tags = node.flow ? `<div class="detail__tags">
       ${node.ref ? `<span class="ref">${escapeHtml(node.ref)}</span>` : ''}
       ${node.audience ? `<span class="${audienceClass(node.audience)}">${escapeHtml(node.audience.code)}</span><span class="detail__aud">${escapeHtml(node.audience.label)}</span>` : ''}
-      ${node.type === 'email' ? `<span class="kind">${ICONS.email}Email</span>` : ''}
+      ${channelChips(node)}
     </div>` : '';
 
   dom.flyDetail.innerHTML = `${tags}
