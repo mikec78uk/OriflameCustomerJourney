@@ -39,6 +39,8 @@ python3 -m http.server 5173
 
 ## Updating content
 
+**Google Analytics data:** page metrics live in `js/journeys/stats.js`, keyed by reference number (users, views, views per session/user, engagement rate, each with its change vs the previous period). Pages with data show a users headline on the card and a Key Behaviour section in the flyout. Replace the file's contents when a new export is supplied.
+
 **Screenshots:** put full-size PNGs named by reference (e.g. `R-12.png`) in `assets/screens/` and run `scripts/optimise-screens.sh` to create 900px-wide JPEGs for the flyout. The original PNGs are git-ignored. Screenshots of signed-in pages and emails contain personal data (names, emails, phone numbers, account numbers, profile photos, sponsor details), so **redact the JPEGs before committing**. The published R-, NL- and O- JPEGs have already been redacted. List the references with screenshots in each journey's `SCREENSHOTS` set; a page can use a different image in one journey with `page(..., { screenshot: 'R-35-training' })`.
 
 User-flow journeys live in `js/journeys/` and are built with `artboard()` and `finalize()` from `flow.js`. Use `page(ref, name, x, y, { audience, type, flag, challenges })` for pages, with PDF artboard coordinates, plus `terminal`, `trigger` (UI element) and `ghost` (expected but doesn't exist yet). Edges take optional `via` waypoints, `style: 'none'` for a dashed no-direct-connection link, `flag` for a ⚠ label and `delay: { wait, day }` for a time delay. `finalize()` derives the card summaries and the flyout's sources and destinations from the flow. When you add real data, replace the `TBD` values and set `detail.screenshot` to an image in `assets/screens/`.

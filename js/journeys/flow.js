@@ -2,6 +2,7 @@
 // (see "Key to read userflow.pdf"). Final-deliverable content: anything not yet known is TBD.
 
 import { DESCRIPTIONS } from './descriptions.js';
+import { STATS } from './stats.js';
 
 export const TBD = 'TBD';
 
@@ -133,6 +134,7 @@ export function finalize({ nodes, terminals = [], triggers = [], ghosts = [], de
     const uniqueOuts = [...new Set(outs.map((o) => o.id))];
     n.next = uniqueOuts.length === 1 && isPage(uniqueOuts[0]) ? byId.get(uniqueOuts[0]).name : TBD;
     n.findings = n.challenges.length || TBD;
+    n.stats = (n.ref && STATS[n.ref]) || null; // Google Analytics metrics, when supplied for this reference
     n.detail = {
       screenshot: n.screenshot ? `assets/screens/${n.screenshot}.jpg`
         : n.ref && screenshots.has(n.ref) ? `assets/screens/${n.ref}.jpg` : null,

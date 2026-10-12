@@ -1,4 +1,5 @@
 import { meta, journeys } from './data.js';
+import { STATS_PERIOD } from './journeys/stats.js';
 
 gsap.registerPlugin(MotionPathPlugin);
 
@@ -251,6 +252,26 @@ const ICONS = {
   account: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/></svg>',
 };
 
+// Google Analytics formatting: counts, ratios, rates and change vs the previous period.
+const fmtCount = (v) => Math.round(v).toLocaleString('en-GB');
+const fmtRatio = (v) => v.toFixed(2);
+const fmtRate = (v) => `${(v * 100).toFixed(1)}%`;
+function changeBadge(c) {
+  if (c == null) return '<span class="chg chg--none" title="No comparison available">–</span>';
+  const pct = c * 100;
+  const dir = pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat';
+  const sign = pct > 0 ? '+' : '';
+  const arrow = { up: '▲', down: '▼', flat: '■' }[dir];
+  return `<span class="chg chg--${dir}" title="${sign}${pct.toFixed(1)}% ${STATS_PERIOD.comparison}"><span aria-hidden="true">${arrow}</span> ${sign}${pct.toFixed(1)}%</span>`;
+}
+const GA_ROWS = [
+  ['Total users', 'users', fmtCount],
+  ['Views', 'views', fmtCount],
+  ['Views per session', 'viewsPerSession', fmtRatio],
+  ['Views per user', 'viewsPerUser', fmtRatio],
+  ['Engagement rate', 'engagementRate', fmtRate],
+];
+
 const findingsLabel = (f) => (typeof f === 'number' ? `${f} Finding${f === 1 ? '' : 's'}` : `${f} Findings`);
 const audienceClass = (a) => `aud aud--${a.code.toLowerCase()}`;
 
@@ -406,7 +427,8 @@ function buildCanvas(journey) {
     const title = [node.ref, node.fullName || node.name, node.audience && `(${node.audience.label})`].filter(Boolean).join(' ');
     // Journeys can hide traffic metrics (visits, conversion, sources/destinations) until real data exists.
     const metrics = journey.metrics !== false;
-    const summary = metrics ? `${node.visits} visits, ${node.rate} to ${node.next}, ` : '';
+    const summary = metrics ? `${node.visits} visits, ${node.rate} to ${node.next}, `
+      : node.stats ? `${fmtCount(node.stats.users)} users, ` : '';
     card.setAttribute('aria-label', `${title}: ${summary}${findingsLabel(node.findings)}. Open detail.`);
     if (!metrics) card.classList.add('card--no-metrics');
     place(card, node);
@@ -420,6 +442,8 @@ function buildCanvas(journey) {
         ${metrics ? `<span class="card__row"><strong>${escapeHtml(node.visits)}</strong> Visits</span>
         <span class="card__row"><strong>${escapeHtml(node.rate)}</strong><span class="card__arrow">→</span><span class="card__next">${escapeHtml(node.next)}</span></span>
         <span class="card__meter"><span data-w="${parseFloat(node.rate) || 0}"></span></span>` : ''}
+        ${!metrics && node.stats ? `<span class="card__stat" title="Google Analytics total users, change ${STATS_PERIOD.comparison}">
+          <strong>${fmtCount(node.stats.users)}</strong> users ${node.stats.usersChange != null ? changeBadge(node.stats.usersChange) : ''}</span>` : ''}
         <span class="card__findings${typeof node.findings === 'number' ? '' : ' is-tbd'}"><span aria-hidden="true">⚠</span> ${escapeHtml(findingsLabel(node.findings))}</span>
       </span>`;
     card.addEventListener('click', (ev) => {
@@ -786,9 +810,10 @@ dom.tourBtn.addEventListener('click', () => (state.tour ? stopTour() : startTour
 gsap.set(dom.flyout, { xPercent: 105 });
 
 function parseValue(v) {
-  const m = String(v).match(/^([\d.]+)(.*)$/);
+  const m = String(v).match(/^(\d[\d,]*(?:\.\d+)?)(.*)$/);
   if (!m) return null;
-  return { num: parseFloat(m[1]), decimals: (m[1].split('.')[1] || '').length, suffix: m[2] };
+  const digits = m[1].replace(/,/g, '');
+  return { num: parseFloat(digits), decimals: (digits.split('.')[1] || '').length, grouped: m[1].includes(','), suffix: m[2] };
 }
 
 function statList(rows, { bars = true } = {}) {
@@ -825,6 +850,12 @@ function renderDetail(node) {
   dom.flyDetail.innerHTML = `${tags}
     <h2 class="detail__title" id="fly-title">${escapeHtml(title)}${d.placeholder ? '<span class="tag">Placeholder data</span>' : ''}</h2>
     <p class="detail__desc">${escapeHtml(d.description)}</p>
+    ${node.stats && state.journey.metrics === false ? `
+    <section class="section"><h3 class="section__title">Key Behaviour</h3>
+      <p class="section__note">${escapeHtml(STATS_PERIOD.source)} · ${escapeHtml(meta.dateRange)} · change ${escapeHtml(STATS_PERIOD.comparison)}</p>
+      <ul class="stats stats--ga">${GA_ROWS.map(([label, key, fmt]) => `<li class="stat stat--ga"><span>${label}</span>
+        <span class="stat__value" data-v="${node.stats[key] == null ? '–' : fmt(node.stats[key])}">${node.stats[key] == null ? '–' : fmt(node.stats[key])}</span>${changeBadge(node.stats[`${key}Change`])}</li>`).join('')}</ul>
+    </section>` : ''}
     ${state.journey.metrics !== false ? `
     <section class="section"><h3 class="section__title">Key Behaviour</h3>${statList(d.keyBehaviour)}</section>
     <section class="section"><h3 class="section__title">Where did customers come from?</h3>${statList(d.cameFrom)}</section>
@@ -868,7 +899,10 @@ function animateDetailIn(delay = 0) {
     const o = { n: 0 };
     tl.to(o, {
       n: p.num, duration: 0.9, ease: 'power2.out',
-      onUpdate: () => { v.textContent = `${o.n.toFixed(p.decimals)}${p.suffix}`; },
+      onUpdate: () => {
+        const n = p.grouped ? Math.round(o.n).toLocaleString('en-GB') : o.n.toFixed(p.decimals);
+        v.textContent = `${n}${p.suffix}`;
+      },
     }, 0.25 + i * 0.03);
   });
   tl.from(dom.flyDetail.querySelectorAll('.note'), { opacity: 0, x: 16, duration: 0.45, stagger: 0.08, ease: 'power2.out' }, 0.45);
