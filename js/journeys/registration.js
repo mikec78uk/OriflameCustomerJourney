@@ -8,7 +8,8 @@
 
 import { artboard, finalize, FLOW_LEGEND, NOT_UK_LEGEND, SOURCE as source } from './flow.js';
 
-const { page: flowPage, terminal, trigger, decision, banner, edge: e } = artboard({ ox: 60, oy: 60 });
+// oy shifts the PDF artboard down 600px to make room for the BCM 6.0 swimlane at the top of the canvas.
+const { page: flowPage, terminal, trigger, decision, banner, edge: e } = artboard({ ox: 60, oy: -540 });
 
 // CRM email content and timings from "CRM journeys overview (BCM markets) 2025".
 const CRM = 'CRM journeys overview (BCM markets) 2025';
@@ -17,8 +18,11 @@ const WELCOME_DAY1 = `Welcome journey, Day 1 – Email 1 “Welcome to Community
 // R-n pages; CRM emails (E-n) share a number across Member and Brand Partner variants, so their ids include the audience.
 const page = (n, name, x, y, { prefix = 'R', ...opts } = {}) => flowPage(`${prefix}-${n}`, name, x, y, {
   ...opts,
-  id: prefix === 'R' ? `r-${n}` : `${prefix.toLowerCase()}-${n}-${opts.audience.toLowerCase()}`,
+  id: opts.id || (prefix === 'R' ? `r-${n}` : `${prefix.toLowerCase()}-${n}-${opts.audience.toLowerCase()}`),
 });
+
+// BCM 6.0 swimlane, above the current flow: PDF-artboard card top for its main row (centre -380).
+const BCM6_Y = -444;
 
 const nodes = [
   page(1, 'Global landing page', 440, 616),
@@ -78,6 +82,20 @@ const nodes = [
   page(37, 'Business Tools Register [Register a VIP Customer]', 5844, 681, { audience: 'BrP' }),
   page(38, 'Business Tools Register [Activate registered consultants]', 5844, 860, { audience: 'BrP' }),
 
+  // BCM 6.0 – alternative registration flow after the business model change ("Registration BCM 6.pdf").
+  // Its own swimlane above the current flow; steps line up under their counterparts (R-3, R-6, R-11, R-13,
+  // R-14, R-16, R-18 / R-35). No audience badges: the source flow doesn't split Member / Brand Partner.
+  page(39, 'Sign Up Landing Page', 1560, BCM6_Y),
+  page(40, 'Register', 2264, BCM6_Y),
+  page(41, 'Verify your phone', 2842, BCM6_Y),
+  // R-12 also appears in BCM 6.0 (same page and screenshot), lined up above the original R-12.
+  page(12, 'Verification code', 3182, BCM6_Y, { type: 'email', id: 'r-12-bcm6' }),
+  page(42, 'Your details', 3514, BCM6_Y),
+  page(43, 'Almost there', 3846, BCM6_Y),
+  page(44, 'Welcome to Oriflame!', 3846, BCM6_Y + 230, { type: 'email' }),
+  page(45, 'Welcome to Oriflame!', 4510, BCM6_Y),
+  page(46, 'My Account (Dashboard)', 5112, BCM6_Y),
+
   // CRM Welcome journey after the welcome email (variants of the same email per audience).
   // Not available in the UK: shown faded and labelled (notUk).
   ...['M', 'BrP'].flatMap((audience) => {
@@ -120,6 +138,7 @@ const nodes = [
 
 // Start / end points (yellow circles in the source key).
 const terminals = [
+  terminal('bcm6-start', 'BCM 6.0 sign-up', 1250, BCM6_Y + 64),
   terminal('email-comms', 'Email communications', 204, 157, { tag: 'TBC' }),
   terminal('url-uk', 'Typing URL uk.oriflame.com', 200, 384),
   terminal('url-global', 'Typing URL oriflame.com', 200, 576),
@@ -147,6 +166,11 @@ const banners = [
   banner('not-uk-upgrade', 'Not available in the UK · CRM Members Upgrade journey runs in other BCM markets', 6060, 1462),
 ];
 
+// Swimlane box around the BCM 6.0 flow (canvas coordinates).
+const lanes = [
+  { id: 'lane-bcm6', label: 'BCM 6.0 · Alternative registration flow (new business model)', x: 1100, y: 40, w: 4330, h: 470 },
+];
+
 const decisions = [
   decision('order-placed-brp', 'Order placed?', 6380, 279, { notUk: true }),
   decision('order-placed-m', 'Order placed?', 6380, 1864, { notUk: true }),
@@ -170,6 +194,17 @@ const crmSequence = (welcome, aud) => {
 };
 
 const edges = [
+  // BCM 6.0 swimlane
+  e('bcm6-start', 'r-39'),
+  e('r-39', 'r-40'),
+  e('r-40', 'r-41'),
+  e('r-41', 'r-12-bcm6'),
+  e('r-12-bcm6', 'r-42'),
+  e('r-42', 'r-43'),
+  e('r-43', 'r-44', { fromSide: 'b', toSide: 't' }),
+  e('r-43', 'r-45'),
+  e('r-45', 'r-46'),
+
   // Entry points
   e('email-comms', 'r-2', { toSide: 't', via: [[1040, 157]] }),
   e('email-comms', 'r-3', { toSide: 't', via: [[1680, 157]] }),
@@ -246,7 +281,7 @@ const edges = [
 
 // Pages with a screenshot in assets/screens/, named by reference number (redacted web JPEGs).
 // CRM emails (E-n) have no screenshots yet.
-const SCREENSHOTS = new Set(Array.from({ length: 38 }, (_, i) => `R-${i + 1}`));
+const SCREENSHOTS = new Set(Array.from({ length: 45 }, (_, i) => `R-${i + 1}`)); // R-46 to follow
 
 finalize({ nodes, terminals, triggers, decisions, edges, screenshots: SCREENSHOTS, describeTerminal: { 'end-brp': 'Becomes a Brand Partner (BrP)' } });
 
@@ -256,13 +291,13 @@ export const registration = {
   status: 'ready',
   metrics: false, // hide visits, conversion and traffic sources/destinations until real data is available
   width: 7000,
-  height: 2420,
+  height: 3060,
   nodes,
   terminals,
   triggers,
   notes,
   decisions,
-  groups: banners,
+  groups: [...lanes, ...banners],
   edges,
   legend: [...FLOW_LEGEND, NOT_UK_LEGEND],
 };

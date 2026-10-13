@@ -39,8 +39,10 @@ export const NOT_UK_LEGEND = { kind: 'not-uk', label: 'Not available in the UK' 
 
 // Placement helpers on a PDF artboard. Coordinates are PDF pixels; `ox`/`oy` shift them onto the canvas.
 // Page `y` values are the PDF card tops; cards keep the PDF card centre so connectors line up.
-export function artboard({ ox = 60, oy = 60, metrics = false } = {}) {
-  const pdf = ([x, y]) => [x - ox, y - oy];
+// `sy` stretches the artboard vertically (for dense sources whose boxes are shorter than our cards) and
+// `pdfCardH` is the source's box height, so cards stay centred on the source boxes.
+export function artboard({ ox = 60, oy = 60, metrics = false, sy = 1, pdfCardH = PDF_CARD_H } = {}) {
+  const pdf = ([x, y]) => [x - ox, y * sy - oy];
   const H = metrics ? CARD_H.metrics : CARD_H.compact;
   return {
     pdf,
@@ -66,7 +68,7 @@ export function artboard({ ox = 60, oy = 60, metrics = false } = {}) {
         flag,
         challenges,
         x: x - ox,
-        y: y + PDF_CARD_H / 2 - H / 2 - oy,
+        y: (y + pdfCardH / 2) * sy - H / 2 - oy,
         w: W,
         h: H,
         visits: TBD,
@@ -75,23 +77,31 @@ export function artboard({ ox = 60, oy = 60, metrics = false } = {}) {
     },
     // Start / end points (yellow circles in the source key), placed by centre.
     terminal(id, label, cx, cy, { d = 150, tag = null, notUk = false } = {}) {
-      return { id, label, tag, notUk, x: cx - d / 2 - ox, y: cy - d / 2 - oy, w: d, h: d };
+      return { id, label, tag, notUk, x: cx - d / 2 - ox, y: cy * sy - d / 2 - oy, w: d, h: d };
     },
     // UI elements (banners, buttons, icons) that lead between pages.
     trigger(id, label, x, y, w, h, { variant = 'light', caption = null, icon = null } = {}) {
-      return { id, label, caption, icon, variant, x: x - ox, y: y - oy, w, h };
+      return { id, label, caption, icon, variant, x: x - ox, y: y * sy - oy, w, h };
     },
     // UML decision (triangle), placed by centre.
     decision(id, label, cx, cy, { size = 100, notUk = false } = {}) {
-      return { id, label, size, notUk, x: cx - size / 2 - ox, y: cy - size / 2 - oy };
+      return { id, label, size, notUk, x: cx - size / 2 - ox, y: cy * sy - size / 2 - oy };
     },
     // Text banner placed above a group of steps (rendered as a borderless group label).
     banner(id, label, x, y, { variant = 'not-uk' } = {}) {
-      return { id, label, variant, x: x - ox, y: y - oy, w: 1, h: 1 };
+      return { id, label, variant, x: x - ox, y: y * sy - oy, w: 1, h: 1 };
     },
     // Something the flow expects but that doesn't exist yet (dashed outline in the source).
     ghost(id, label, x, y, { caption = 'Does not exist yet', w = W, h = PDF_CARD_H } = {}) {
-      return { id, label, caption, x: x - ox, y: y - oy, w, h };
+      return { id, label, caption, x: x - ox, y: y * sy - oy, w, h };
+    },
+    // Same as ghost, placed by centre (e.g. a collapsed group such as "x11 PLP Subpages").
+    ghostAt(id, label, cx, cy, { caption = '', w = W, h = 72, variant = null } = {}) {
+      return { id, label, caption, variant, x: cx - w / 2 - ox, y: cy * sy - h / 2 - oy, w, h };
+    },
+    // Section frame / swimlane from source corner coordinates.
+    frame(id, label, x0, y0, x1, y1, opts = {}) {
+      return { id, label, ...opts, x: x0 - ox, y: y0 * sy - oy, w: x1 - x0, h: (y1 - y0) * sy };
     },
     // Connector. `via` waypoints are PDF coordinates; the first and last snap to the anchors.
     // `style: 'none'` = "No direct connection"; `delay: { wait, day? }` marks time passing.
@@ -102,8 +112,8 @@ export function artboard({ ox = 60, oy = 60, metrics = false } = {}) {
 }
 
 // Fills in card summaries and flyout detail from the flow itself.
-export function finalize({ nodes, terminals = [], triggers = [], ghosts = [], decisions = [], edges, screenshots = new Set(), describeTerminal = {} }) {
-  const byId = new Map([...nodes, ...terminals, ...triggers, ...ghosts, ...decisions].map((x) => [x.id, x]));
+export function finalize({ nodes, terminals = [], triggers = [], ghosts = [], decisions = [], groups = [], edges, screenshots = new Set(), describeTerminal = {} }) {
+  const byId = new Map([...nodes, ...terminals, ...triggers, ...ghosts, ...decisions, ...groups].map((x) => [x.id, x]));
   const isPage = (id) => nodes.some((n) => n.id === id);
   const pageLabel = (n) => `${n.ref ? `${n.ref} ${n.name}` : n.name}${n.notUk ? ' – not in UK' : ''}`;
   const triggerName = (t) => (t.icon ? `${t.label} icon` : [t.caption, t.label].filter(Boolean).join(' – '));

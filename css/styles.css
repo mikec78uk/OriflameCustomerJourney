@@ -262,6 +262,11 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
   background: rgba(255,255,255,.6); color: var(--ori-default-dark);
 }
 .ghost__label { font-size: 15px; }
+/* Collapsed groups of pages (e.g. "x11 PLP Subpages") and in-between content placeholders. */
+.ghost--subpages { border: 2px dashed var(--ori-info-main); border-color: #9cc3e4; background: var(--ori-white); }
+.ghost--subpages .ghost__label { font-size: 13px; font-weight: 700; color: var(--ori-text-primary); }
+.edge--dashed { stroke: var(--ori-grey-500); stroke-dasharray: 8 7; }
+.edge--plain { stroke: var(--ori-grey-300); }
 .ghost__caption { font-size: 11px; color: var(--ori-text-secondary); text-transform: uppercase; letter-spacing: .06em; }
 
 .sticky {
@@ -323,6 +328,8 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
 }
 .legend__swatch--push { width: 9px; height: 14px; border-radius: 3px; border: 1.5px solid var(--ori-primary-dark); background: var(--ori-primary-light); }
 .legend__swatch--decision { width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 12px solid var(--ori-default-dark); }
+.legend__swatch--subpages { width: 16px; height: 11px; border-radius: 2px; border: 1.5px dashed #9cc3e4; background: var(--ori-white); }
+.legend__swatch--dashed { width: 18px; height: 0; border-top: 2px dashed var(--ori-grey-500); }
 .legend__swatch--trigger { width: 16px; height: 11px; border-radius: 3px; background: var(--ori-default-dark); }
 .legend__swatch--aud-m, .legend__swatch--aud-brp { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 999px; }
 .legend__swatch--aud-m { background: var(--ori-info-light); color: var(--ori-info-dark); }

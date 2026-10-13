@@ -5,7 +5,7 @@ gsap.registerPlugin(MotionPathPlugin);
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const MIN_SCALE = 0.2;
+const MIN_SCALE = 0.05; // low enough to fit the large Purchase site map
 const MAX_SCALE = 2;
 const INITIAL_MIN_SCALE = 0.55;
 
@@ -337,10 +337,12 @@ function buildCanvas(journey) {
     const pts = routeEdge(journey, e);
     const none = e.style === 'none';
     const muted = !!e.notUk; // connector into or within steps not available in the UK
+    const dashed = e.style === 'dashed'; // e.g. "can land here directly" from external entry points
+    const plain = e.arrow === false; // bracket/grouping lines without an arrowhead
     const path = svg('path', {
       d: roundedPath(pts),
-      class: `edge${none ? ' edge--none' : ''}${muted ? ' edge--not-uk' : ''}`,
-      'marker-end': none ? 'url(#arrow-none)' : muted ? 'url(#arrow-muted)' : 'url(#arrow)',
+      class: `edge${none ? ' edge--none' : ''}${muted ? ' edge--not-uk' : ''}${dashed ? ' edge--dashed' : ''}${plain ? ' edge--plain' : ''}`,
+      ...(plain ? {} : { 'marker-end': none ? 'url(#arrow-none)' : muted ? 'url(#arrow-muted)' : 'url(#arrow)' }),
     });
     edgeLayer.appendChild(path);
     const len = path.getTotalLength();
@@ -380,8 +382,8 @@ function buildCanvas(journey) {
       rec.flagEl = f;
     }
 
-    if (!none && !muted) {
-      const count = Math.max(1, Math.round(len / 160));
+    if (!none && !muted && !dashed && !plain) {
+      const count = Math.min(6, Math.max(1, Math.round(len / 160)));
       for (let i = 0; i < count; i++) {
         const c = svg('circle', { r: 3, class: 'particle', opacity: 0 });
         particleLayer.appendChild(c);
@@ -420,7 +422,7 @@ function buildCanvas(journey) {
   });
 
   listOf(journey, 'ghosts').forEach((t) => {
-    const n = place(el('div', 'ghost', `<span class="ghost__label">${escapeHtml(t.label)}</span><span class="ghost__caption">${escapeHtml(t.caption)}</span>`), t);
+    const n = place(el('div', `ghost${t.variant ? ` ghost--${t.variant}` : ''}`, `<span class="ghost__label">${escapeHtml(t.label)}</span>${t.caption ? `<span class="ghost__caption">${escapeHtml(t.caption)}</span>` : ''}`), t);
     n.dataset.id = t.id;
     dom.world.appendChild(n);
   });
@@ -494,7 +496,7 @@ function lightEdgesFor(id) {
   state.edges.forEach((e) => {
     const lit = id != null && edgeTouches(e, id);
     e.path.classList.toggle('is-lit', lit);
-    if (e.style !== 'none' && !e.notUk) e.path.setAttribute('marker-end', lit ? 'url(#arrow-lit)' : 'url(#arrow)');
+    if (e.style !== 'none' && !e.notUk && e.arrow !== false) e.path.setAttribute('marker-end', lit ? 'url(#arrow-lit)' : 'url(#arrow)');
   });
 }
 

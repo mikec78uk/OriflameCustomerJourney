@@ -4,14 +4,15 @@ Interactive prototype for communicating Oriflame customer journeys. Each journey
 
 **Live:** https://mikec78uk.github.io/OriflameCustomerJourney/
 
+> **Registration** includes a **BCM 6.0** swimlane (R-39 … R-46) showing the alternative registration flow after the business model change, lined up under the current flow.
 > **Registration**, **Newsletter** and **Brand Partner Training (Onboarding)** are final-deliverable content, transcribed from their user-flow PDFs. Anything not yet known is shown as **TBD**, and screenshots are marked *Coming soon*.
 > CRM emails from *CRM journeys overview (BCM markets) 2025* are added to the flows they belong to; live journeys not triggered by site actions are on the **CRM journeys** tab.
-> **Core Transactional Journey** still uses placeholder values from the Figma wireframes.
+> **Purchase** is the full site map and checkout from *Oriflame Journey Mapping WIP.pdf* (SHOP, INSPIRATION, ALL OFFERS, shopping example, checkout as-is and BCM 6.0 checkout), with the abandoned basket, Share & Earn, NovAge+ and Wellosophy CRM journeys in their own lanes.
 
 ## Features
 
-- **Journeys:** Registration, Newsletter, Brand Partner Training (Onboarding), CRM journeys, Core Transactional Journey (placeholder) and Revieve Beauty Tools (coming soon), switched by tabs
-- **Reference numbers:** pages have references (R-1 … R-38, E-1 … E-6, P-1, NL-1 … NL-8, O-1 … O-15, CRM-n.n) and an audience badge: **M** = Member, **BrP** = Brand Partner
+- **Journeys:** Registration, Newsletter, Brand Partner Training (Onboarding), Purchase and CRM journeys, switched by tabs (Revieve Beauty Tools is hidden for now)
+- **Reference numbers:** pages have references (R-1 … R-46, E-1 … E-6, NL-1 … NL-8, O-1 … O-15, P-1 … P-46, CRM-n.n) and an audience badge: **M** = Member, **BrP** = Brand Partner
 - **User-flow key:** start/end points, steps, envelope-shaped email steps, phone-shaped push/SMS/WhatsApp steps, UML decisions, UI elements, direct connections and dashed *no direct connection* links with ⚠ findings
 - **Canvas:** drag to pan, <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + scroll or pinch to zoom, zoom controls and fit-to-screen
 - **Walkthrough:** a guided camera tour through every step of the journey
@@ -25,8 +26,8 @@ Interactive prototype for communicating Oriflame customer journeys. Each journey
 ```
 index.html          App shell
 css/styles.css      Flourish design tokens + component styles
-js/data.js          Journey list + Core Transactional Journey placeholder content
-js/journeys/        Final journey content (registration.js, newsletter.js, training.js, crm.js) + shared flow helpers (flow.js)
+js/data.js          Journey list and header settings
+js/journeys/        Final journey content (registration.js, newsletter.js, training.js, purchase.js, crm.js), page descriptions, GA stats + shared flow helpers (flow.js)
 js/app.js           Rendering, camera, animation, flyout
 assets/             Logo, favicon, page screenshots
 ```
@@ -45,12 +46,7 @@ python3 -m http.server 5173
 
 User-flow journeys live in `js/journeys/` and are built with `artboard()` and `finalize()` from `flow.js`. Use `page(ref, name, x, y, { audience, type, flag, challenges })` for pages, with PDF artboard coordinates, plus `terminal`, `trigger` (UI element) and `ghost` (expected but doesn't exist yet). Edges take optional `via` waypoints, `style: 'none'` for a dashed no-direct-connection link, `flag` for a ⚠ label and `delay: { wait, day }` for a time delay. Mark steps that exist in other markets but not the UK with `notUk: true` on pages, decisions, terminals and edges (shown faded, labelled "Not in UK", skipped by the walkthrough) and add a `banner` above them. `finalize()` derives the card summaries and the flyout's sources and destinations from the flow. When you add real data, replace the `TBD` values and set `detail.screenshot` to an image in `assets/screens/`.
 
-Placeholder content lives in `js/data.js`:
-
-- **Pages:** add or edit entries in `coreNodes` (`x`/`y` are canvas positions, matching Figma)
-- **Connectors:** `coreEdges` (`from`/`to` ids, optional `fromSide`/`toSide` of `t`/`r`/`b`/`l`, and an optional `label`)
-- **Page detail:** set `detail` on a node (see `placeholderDetail` for the shape). Put screenshots in `assets/screens/`
-- **New journey:** add an object to `journeys` with `status: 'ready'` and its own nodes, edges, decisions and groups
+To add a journey, create a file in `js/journeys/` and add it to the `journeys` list in `js/data.js`. Dense source maps can be stretched vertically with `artboard({ sy, pdfCardH })`.
 
 ## Deploying
 

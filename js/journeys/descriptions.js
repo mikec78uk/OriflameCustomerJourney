@@ -117,8 +117,116 @@ export const DESCRIPTIONS = {
     "Business Tools form for registering a VIP Customer, outlining VIP benefits and capturing email, name, mobile number, shipping address, sponsor and invitation method before ’Register’.",
   'R-38':
     "Table of registered consultants who have not yet activated their accounts, with date, name, Brand Partner number and an option to send an activation code.",
+  'R-39':
+    "Sign-up landing page promoting free membership, up to 30% off every order and free delivery over €45, with customer testimonials, a welcome video, FAQs and Sign Up buttons.",
+  'R-40':
+    "First registration step asking for a mobile number with country code, a password and an optional invite code, with Continue plus Google, Facebook and Apple sign-up options.",
+  'R-41':
+    "Verification step where the new user enters the six-digit code sent to their mobile, with an option to send the code again.",
+  'R-42':
+    "Step one of two, asking for first name, last name and an optional email address before continuing.",
+  'R-43':
+    "Final step for accepting the Terms and Conditions and Privacy Policy, with an under-18 option and a Register button to complete sign-up.",
+  'R-44':
+    "Welcome email confirming membership, showing the new Brand Partner number and supporting Brand Partner’s contact details, with a Start Shopping button, Bestsellers and Wellness links and FAQs.",
+  'R-45':
+    "Post-registration welcome page showing trending products, member benefits, personalised beauty and wellness tools, customer testimonials and an #OriflameOnMe community carousel, with Start Shopping and Explore links.",
+  'R-46':
+    "Account dashboard reached at the end of the BCM 6.0 registration flow (screenshot to follow).",
   'R-35-training':
     "Brand Partner account dashboard showing onboarding progress, a ’Connect with leaders’ prompt, What’s New articles, Share & Earn invite tools, My Business title progress and earnings.",
   'whats-new-brp':
     "What’s New area of the signed-in Brand Partner account, with news categories that include the Brand Partner newsletter (NL-6).",
+  'P-1':
+    "Offers hub with hero promotions for current deals, a ’See all current offers’ button, a bestsellers carousel and a grid of promotional tiles linking to sets, codes, samples and the outlet.",
+  'P-2':
+    "Product listing of every current promotion with result count, sorting and filter controls, and a grid of discounted products showing ratings, sale and original prices, wishlist and add-to-basket buttons.",
+  'P-3':
+    "Landing page for paired nutrition-and-skincare sets, grouping products by beauty goal with ’Shop the set’ links, followed by explanatory content, a three-step guide and an FAQ.",
+  'P-4':
+    "Article explaining the Wellosophy subscription, covering subscriber benefits, how it works, a bestsellers carousel with ’Subscribe & save’ tags, customer quotes, wellness-goal tiles, an FAQ and related inspiration articles.",
+  'P-5':
+    "Product listing of all new arrivals with category shortcut chips, sorting and filter controls, and a grid of new products with ratings, prices and add-to-basket buttons.",
+  'P-6':
+    "Product listing of new skincare arrivals with sorting and filter controls and a small grid of products with ratings, prices and add-to-basket buttons.",
+  'P-7':
+    "Product listing of new makeup arrivals with sorting and filter controls and a short grid of products showing shade swatches, ratings, prices and add-to-basket buttons.",
+  'P-8':
+    "Product listing of new fragrance arrivals with sorting and filter controls, currently showing one product marked ’coming back soon’ with a back-in-stock alert button.",
+  'P-9':
+    "Product listing of new bath and body arrivals with sorting and filter controls and a grid of hand, body and soap products with prices and add-to-basket buttons.",
+  'P-10':
+    "Product listing of new haircare arrivals with sorting and filter controls and a short grid of hair products and brushes with ratings, prices and add-to-basket buttons.",
+  'P-11':
+    "Product listing of new accessories with sorting and filter controls and a grid of bags, brushes, jewellery, clothing and gadgets with prices and add-to-basket buttons.",
+  'P-12':
+    "Product listing for new men’s arrivals with only a sorting control and no products currently shown, followed by the site footer.",
+  'P-13':
+    "Skincare category page with shortcuts to shop by product, benefit or ingredient, sorting and filters, a product grid with promotional tiles and a ’Show more’ button, plus gift ideas and guidance text.",
+  'P-14':
+    "Skincare listing organised by product type, with type chips such as cleansers, serums and moisturisers, sorting and filters, and a grid of products with ratings, prices and add-to-basket buttons.",
+  'P-15':
+    "Skincare listing organised by skin benefit, with benefit chips such as anti-ageing and hydrating, sorting and filters, and a grid of products with ratings, prices and add-to-basket buttons.",
+  'P-16':
+    "Skincare listing organised by key ingredient, with chips such as salicylic acid, hyaluronic acid and niacinamide, sorting and filters, and a grid of products with ratings and prices.",
+  'P-17':
+    "Offers edit of best-price beauty and wellbeing products, with a sale countdown timer, a ’Top offers’ filter and product cards showing discounted prices, ratings and add-to-basket buttons.",
+  'P-18':
+    "Fragrance category listing with sort, filter and shop-by product, mood, family or whom shortcuts, a product grid with editorial tiles, load-more progress and gift-category links.",
+  'P-19':
+    "Fragrances filtered by the Bold mood, with mood tabs, sort and filter controls, campaign imagery mixed into a product grid, and an explanatory section on bold scents.",
+  'P-20':
+    "Confident-mood fragrance listing for men, with mood tabs, sort and filter, campaign imagery and six product cards, followed by a short description of strong, confident scents.",
+  'P-21':
+    "Energising-mood fragrance listing with mood tabs, sort and filter, lifestyle imagery within a nine-product grid and a closing section on happy, energising scents.",
+  'P-22':
+    "A–Z directory of Oriflame brands with category tabs, an alphabet jump bar and round brand logos grouped by initial letter, each linking to its brand page.",
+  'P-23':
+    "Brand page for the Top Scents niche perfume collection, with a hero banner, introduction, sortable four-product grid, a promo tile and the story behind the collection.",
+  'P-24':
+    "Editorial article promoting Wellosophy nutrition subscriptions, covering subscriber benefits, how the subscription works, a bestseller carousel, customer testimonial, wellness goals, FAQs and related articles.",
+  'P-25':
+    "’Go to’ hub introducing Oriflame’s content areas, with category tiles for Digital tools & news and News hub, plus an Inspiration corner carousel of article cards.",
+  'P-26':
+    "Product detail page for Wellosophy Gluco Shape, with image gallery, price, one-off or subscribe options, add-to-bag, VIP benefits, description tabs, recommendations and customer ratings and reviews.",
+  'P-27':
+    "Digital tools & news category listing four article cards on the Oriflame Sharing App, beauty and wellness tools, Business App and Oriflame App, plus a link to News hub.",
+  'P-28':
+    "Virtual Makeup Lab tool page with its welcome pop-up open, explaining virtual try-on of make-up shades and offering a ’Get started’ button.",
+  'P-29':
+    "Waitlist landing page for the 2026 Beauty Advent Calendar, with email sign-up forms, sneak-peek products, key benefits, festive imagery and an FAQ section.",
+  'P-30':
+    "Dandruff hair-concern listing with related concern tabs, sort and filter, and two products; the second view shows the mini-basket confirmation after adding the shampoo.",
+  'P-31':
+    "Product detail page for the Duologi Anti-Flake Purifying Scalp Scrub, with gallery, price, buy button, description tabs, key ingredients, #OriflameOnMe community posts, reviews and recommendations.",
+  'P-32':
+    "Digital catalogue spread (pages 140–141) showing Love Nature hair and body products and shower accessories, with page navigation, view toggles, full-screen and download controls.",
+  'P-33':
+    "Digital catalogue spread featuring the Wellosophy Wellness Pack; the second view shows the quick-buy panel for Wellness Pack Man with price, purchase options and add-to-bag.",
+  'P-34':
+    "Slide-out shopping bag over a product page, listing added items with quantity controls and prices, a spend-threshold offer with progress bar and a Go to Basket button.",
+  'P-35':
+    "Basket listing chosen and recommended items with quantity, delete and subscribe options, a spend-threshold offer and an order summary with promo code and Go to Checkout button.",
+  'P-36':
+    "Sign-up step offering guest checkout or VIP registration, with name, email, mobile and consent fields, VIP benefits panel and a Checkout as Guest button.",
+  'P-37':
+    "VIP registration form with name, email, mobile, password, address and invite-code fields, terms consent, a VIP benefits panel and a Continue button.",
+  'P-38':
+    "Checkout step showing basket thumbnails and contact details, with home delivery or pick-up point options, an empty shipping address form and an order summary.",
+  'P-39':
+    "Checkout step with a saved primary shipping address selected, home delivery method with expected date and cost, a Continue button and an updated order summary.",
+  'P-40':
+    "Checkout review of delivery and billing details with a list of payment methods, including cards, PayPal, Apple Pay, Google Pay, Klarna and Revolut Pay, and a Finalise Order button.",
+  'P-41':
+    "Secure payment form for entering card number, expiry date, security code and cardholder name, showing the total amount and a Continue to Payment button.",
+  'P-42':
+    "Order confirmation showing the order number and email receipt notice, a prompt to register as a member, Continue Shopping button and return policy.",
+  'P-43':
+    "Redesigned basket with chosen items, subscriptions and recommendations, and a tiered discount progress bar that unlocks 10–30% off, alongside an order summary and checkout button.",
+  'P-44':
+    "Redesigned registration form with name, email, password and invite-code fields, marketing consent options, a member perks panel and a Continue button.",
+  'P-45':
+    "Order confirmation email with greeting, order number and date, delivery address, card payment method and an itemised list of purchased products.",
+  'P-46':
+    "Payment-refused email explaining the unsuccessful payment, with payment status, amount due, method, order number and date, and an Order Details Page button.",
 };
