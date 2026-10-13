@@ -110,7 +110,9 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
 }
 .canvas { position: absolute; inset: 0; cursor: grab; touch-action: none; outline: none; }
 .canvas.is-dragging { cursor: grabbing; }
-.world { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+.world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+/* Composited only while moving; at rest it re-rasters crisply instead of holding a huge scaled layer. */
+.world.is-moving { will-change: transform; }
 .edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
 
 .edge { fill: none; stroke: var(--ori-grey-500); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }

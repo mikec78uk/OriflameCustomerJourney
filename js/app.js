@@ -357,7 +357,7 @@ function buildCanvas(journey) {
     });
     edgeLayer.appendChild(path);
     const len = path.getTotalLength();
-    const rec = { ...e, path, len, labelEl: null, flagEl: null, particles: [], startX: Math.min(pts[0][0], pts[pts.length - 1][0]) };
+    const rec = { ...e, path, len, box: path.getBBox(), tweens: [], labelEl: null, flagEl: null, particles: [], startX: Math.min(pts[0][0], pts[pts.length - 1][0]) };
 
     if (e.label) {
       const p = path.getPointAtLength(len * (e.labelAt ?? 0.5));
@@ -592,9 +592,45 @@ function startParticles() {
         delay: (duration / e.particles.length) * i,
         onStart: () => gsap.to(p, { opacity: 0.85, duration: 0.4 }),
       });
+      e.tweens.push(tween);
       state.particles.push(tween);
     });
   });
+  cullParticles();
+}
+
+// Large maps (Purchase has 500+ particles on a 13k px canvas) flicker if every
+// particle repaints while zoomed in, so only edges in view animate, and all
+// particles pause while the camera is moving.
+let camMoving = false;
+let camIdleTimer = 0;
+
+function cullParticles() {
+  const r = dom.canvas.getBoundingClientRect();
+  const { x, y, s } = state.cam;
+  const m = 80 / s;
+  const vx0 = -x / s - m, vy0 = -y / s - m, vx1 = (r.width - x) / s + m, vy1 = (r.height - y) / s + m;
+  state.edges.forEach((e) => {
+    if (!e.tweens.length) return;
+    const b = e.box;
+    const show = !camMoving && b.x <= vx1 && b.x + b.width >= vx0 && b.y <= vy1 && b.y + b.height >= vy0;
+    e.tweens.forEach((t) => (show ? t.resume() : t.pause()));
+    e.particles.forEach((p) => p.setAttribute('visibility', show ? 'visible' : 'hidden'));
+  });
+}
+
+function camMoved() {
+  if (!camMoving) {
+    camMoving = true;
+    dom.world.classList.add('is-moving');
+    cullParticles();
+  }
+  clearTimeout(camIdleTimer);
+  camIdleTimer = setTimeout(() => {
+    camMoving = false;
+    dom.world.classList.remove('is-moving');
+    cullParticles();
+  }, 180);
 }
 
 /* ------------------------------------------------------------------ */
@@ -604,6 +640,7 @@ function startParticles() {
 function applyCam() {
   const { x, y, s } = state.cam;
   dom.world.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
+  camMoved();
   dom.zoomLevel.textContent = `${Math.round(s * 100)}%`;
 }
 

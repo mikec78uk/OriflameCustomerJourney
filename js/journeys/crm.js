@@ -22,13 +22,14 @@ const A = 200, B = 520, C = 840, D1 = 1160, D2 = 1420, E1 = 1880, E2 = 2140, F =
 // Steps from the overview that don't apply in the UK, labelled above the step.
 const banners = [
   banner('not-uk-15-2', 'Not applicable to the UK', col(1), E1 - 118),
+  banner('not-uk-4', 'Not available in the UK · Beauty Rewards support journey', col(1), D1 - 118),
 ];
 
 const groups = [
   lane('lane-6', '6 · Campaign Support – Builders & Sellers · Live', 60, 280),
   lane('lane-7', '7 · Campaign Support – Members & End-consuming BrPs · Live', 380, 280),
   lane('lane-7-leads', '7 · Campaign Support – Leads (newsletter subscribers) · Live', 700, 280),
-  lane('lane-4', '4 · Beauty Rewards support · Live in markets with Beauty Rewards', 1020, 680),
+  lane('lane-4', '4 · Beauty Rewards support · Live in markets with Beauty Rewards (not the UK)', 1020, 680),
   lane('lane-15', '15 · Reactivation · Live in most markets', 1740, 540),
   lane('lane-14', '14 · Birthday · Status not stated', 2320, 280),
   lane('lane-16', '16 · Profile completion · New (proposal)', 2640, 500),
@@ -67,11 +68,11 @@ const nodes = [
     description: `Campaign Support journey, Leads (newsletter subscribers) – Day 1 (${CRM}). Leads receive only the campaign opening email, without the Wallet status block and with a promotion of the Member concept and benefits.` }), id: 'crm-7-1-leads' },
 
   // 4. Beauty Rewards support
-  step('4.1', 'Beauty Rewards programme intro', 0, D1, { ...email(),
+  step('4.1', 'Beauty Rewards programme intro', 0, D1, { notUk: true, ...email(),
     description: `Beauty Rewards support journey, flow 1 – Day 3 after the trigger (2nd campaign after the 1st purchase) (${CRM}). Introduces the opportunity to earn double Hearts; Beauty Rewards benefits – why to collect Hearts and how to redeem.` }),
-  step('4.2', 'Beauty Rewards reminder at campaign start', 0, D2, { ...push(),
+  step('4.2', 'Beauty Rewards reminder at campaign start', 0, D2, { notUk: true, ...push(),
     description: `Beauty Rewards support journey, flow 2 – Push 1 on Day 3 of campaigns C2–C5 (${CRM}). Reminder to place a qualifying order to earn double Hearts and enjoy great rewards.` }),
-  step('4.3', 'Beauty Rewards reminder at campaign end', 2, D2, { ...push(),
+  step('4.3', 'Beauty Rewards reminder at campaign end', 2, D2, { notUk: true, ...push(),
     description: `Beauty Rewards support journey, flow 2 – Push 2, 3 days before the period ends, if no qualifying order has been placed (${CRM}). Don't miss the opportunity to earn double Hearts.` }),
 
   // 15. Reactivation
@@ -105,9 +106,9 @@ const terminals = [
   start('t-6', 'Campaign start', A, { tag: 'Builders & Sellers' }),
   start('t-7', 'Campaign start', B, { tag: 'Members & ECC' }),
   start('t-7-leads', 'Campaign start', C, { tag: 'Leads' }),
-  start('t-4-1', '2nd campaign after 1st purchase', D1),
-  start('t-4-2', 'Start of campaign C2–C5', D2),
-  terminal('exit-4', 'Exit', 860, D2 + 190, { d: 90 }),
+  start('t-4-1', '2nd campaign after 1st purchase', D1, { notUk: true }),
+  start('t-4-2', 'Start of campaign C2–C5', D2, { notUk: true }),
+  terminal('exit-4', 'Exit', 860, D2 + 190, { d: 90, notUk: true }),
   start('t-15-1', 'Inactive 3 campaigns or expiring wallet', E1, { tag: 'Once per campaign' }),
   start('t-15-2', 'Sponsors with inactive downline', E2, { tag: 'Once per campaign' }),
   start('t-14', 'Birthday', F),
@@ -118,7 +119,7 @@ const terminals = [
 ];
 
 const decisions = [
-  decision('d-4-qualifying', 'Qualifying order placed?', 860, D2, { size: 120 }),
+  decision('d-4-qualifying', 'Qualifying order placed?', 860, D2, { size: 120, notUk: true }),
   decision('d-16-missing', 'Missing data in the profile?', 860, G, { size: 120 }),
   decision('d-16-channel', 'Email or phone available?', 1110, G, { size: 120 }),
 ];
@@ -136,11 +137,11 @@ const edges = [
   ]),
   e('t-7-leads', 'crm-7-1-leads', { delay: { wait: 'Day 1' } }),
 
-  e('t-4-1', 'crm-4-1', { delay: { wait: 'Day 3' } }),
-  e('t-4-2', 'crm-4-2', { delay: { wait: 'Day 3' } }),
-  e('crm-4-2', 'd-4-qualifying'),
-  e('d-4-qualifying', 'crm-4-3', { label: 'No', labelAt: 0.12, delay: { wait: '3 days', day: 'before period ends' }, delayAt: 0.58 }),
-  e('d-4-qualifying', 'exit-4', { fromSide: 'b', toSide: 't', label: 'Yes' }),
+  e('t-4-1', 'crm-4-1', { notUk: true, delay: { wait: 'Day 3' } }),
+  e('t-4-2', 'crm-4-2', { notUk: true, delay: { wait: 'Day 3' } }),
+  e('crm-4-2', 'd-4-qualifying', { notUk: true }),
+  e('d-4-qualifying', 'crm-4-3', { notUk: true, label: 'No', labelAt: 0.12, delay: { wait: '3 days', day: 'before period ends' }, delayAt: 0.58 }),
+  e('d-4-qualifying', 'exit-4', { notUk: true, fromSide: 'b', toSide: 't', label: 'Yes' }),
 
   e('t-15-1', 'crm-15-1', { delay: { wait: 'Day 7', day: 'of campaign' } }),
   e('crm-15-1', 'crm-15-2', { notUk: true, delay: { wait: 'End of campaign', day: 'if wallet still expiring' } }),
