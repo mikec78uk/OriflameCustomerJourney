@@ -41,6 +41,14 @@
     <span class="tabs__indicator" id="tab-indicator" aria-hidden="true"></span>
   </nav>
 
+  <section class="summary" id="summary" aria-label="Key metrics for this journey">
+    <div class="summary__metrics" id="summary-metrics"></div>
+    <button class="summary__btn" type="button" id="highlight-btn" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>
+      <span>Highlight</span>
+    </button>
+  </section>
+
   <main class="stage" id="stage">
     <div class="canvas" id="canvas" tabindex="0" aria-label="Journey canvas. Drag to pan.">
       <div class="world" id="world"></div>
@@ -99,6 +107,18 @@
       <span class="flyout__step" id="fly-step"></span>
       <button class="navbtn" type="button" id="fly-next"><span class="navbtn__label"></span> <span aria-hidden="true">→</span></button>
     </footer>
+  </aside>
+
+  <aside class="hl-panel" id="hl-panel" aria-hidden="true" aria-labelledby="hl-title" role="dialog">
+    <button class="flyout__close" type="button" id="hl-close" aria-label="Close highlights">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="hl-panel__scroll">
+      <p class="hl-panel__eyebrow" id="hl-journey"></p>
+      <h2 class="hl-panel__title" id="hl-title">Highlight</h2>
+      <p class="hl-panel__note" id="hl-note"></p>
+      <ol class="hl-list" id="hl-list"></ol>
+    </div>
   </aside>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>

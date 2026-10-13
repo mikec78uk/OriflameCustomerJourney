@@ -45,6 +45,14 @@ const dom = {
   flyPrev: $('#fly-prev'),
   flyNext: $('#fly-next'),
   flyClose: $('#fly-close'),
+  summary: $('#summary'),
+  summaryMetrics: $('#summary-metrics'),
+  highlightBtn: $('#highlight-btn'),
+  hlPanel: $('#hl-panel'),
+  hlClose: $('#hl-close'),
+  hlJourney: $('#hl-journey'),
+  hlNote: $('#hl-note'),
+  hlList: $('#hl-list'),
 };
 
 const state = {
@@ -111,15 +119,18 @@ function selectJourney(id, { intro = true, openNode = null } = {}) {
 
   stopTour();
   if (state.flyoutOpen) closeFlyout(false);
+  if (state.highlightOpen) closeHighlight(false);
   state.journey = journey;
 
   if (changed) {
     teardownCanvas();
     if (journey.status === 'coming-soon') {
+      dom.summary.hidden = true;
       showComingSoon(journey);
     } else {
       hideComingSoon();
       renderLegend(journey);
+      renderSummary(journey);
       buildCanvas(journey);
       state.userMoved = false;
       fitView(false, true);
@@ -995,11 +1006,68 @@ function closeFlyout(animate = true) {
 }
 
 dom.flyClose.addEventListener('click', () => closeFlyout());
-dom.scrim.addEventListener('click', () => closeFlyout());
+dom.scrim.addEventListener('click', () => (state.highlightOpen ? closeHighlight() : closeFlyout()));
+
+/* ------------------------------------------------------------------ */
+/* Journey summary bar + Highlight panel                               */
+/* ------------------------------------------------------------------ */
+
+// Placeholders until each journey's key metrics and takeaways are supplied via `journey.summary`.
+const PLACEHOLDER_SUMMARY = {
+  metrics: [1, 2, 3, 4].map((i) => ({ label: `Key metric ${i}`, value: 'TBD' })),
+  highlights: [1, 2, 3].map((i) => ({ title: `Key takeaway ${i}`, text: 'TBD' })),
+};
+
+function renderSummary(journey) {
+  const metrics = journey.summary?.metrics || PLACEHOLDER_SUMMARY.metrics;
+  dom.summary.hidden = false;
+  dom.summaryMetrics.innerHTML = metrics.map((m) => `<div class="metric">
+      <span class="metric__label">${escapeHtml(m.label)}</span>
+      <span class="metric__value${m.value === 'TBD' ? ' is-tbd' : ''}">${escapeHtml(m.value)}</span>
+    </div>`).join('');
+  if (!reduceMotion) gsap.from(dom.summaryMetrics.children, { opacity: 0, y: 6, duration: 0.4, stagger: 0.05, ease: 'power2.out', clearProps: 'opacity,transform' });
+}
+
+gsap.set(dom.hlPanel, { xPercent: 105 });
+
+function openHighlight() {
+  const j = state.journey;
+  if (!j) return;
+  stopTour();
+  if (state.flyoutOpen) closeFlyout(false);
+  const items = j.summary?.highlights || PLACEHOLDER_SUMMARY.highlights;
+  dom.hlJourney.textContent = j.name;
+  dom.hlNote.textContent = j.summary?.highlights ? 'Key takeaways for this flow.' : 'Key takeaways for this flow – content to be confirmed.';
+  dom.hlList.innerHTML = items.map((h) => `<li class="hl-item"><div>
+      <h3 class="hl-item__title">${escapeHtml(h.title)}</h3><p class="hl-item__text">${escapeHtml(h.text)}</p></div></li>`).join('');
+  state.highlightOpen = true;
+  dom.scrim.hidden = false;
+  dom.hlPanel.setAttribute('aria-hidden', 'false');
+  gsap.killTweensOf([dom.scrim, dom.hlPanel]);
+  gsap.set(dom.hlPanel, { visibility: 'visible' });
+  gsap.to(dom.scrim, { opacity: 1, duration: reduceMotion ? 0 : 0.35 });
+  gsap.to(dom.hlPanel, { xPercent: 0, duration: reduceMotion ? 0 : 0.55, ease: 'power4.out' });
+  if (!reduceMotion) gsap.from(dom.hlList.children, { opacity: 0, x: 18, duration: 0.45, stagger: 0.07, delay: 0.2, ease: 'power3.out', clearProps: 'opacity,transform' });
+  dom.hlClose.focus({ preventScroll: true });
+}
+
+function closeHighlight(animate = true) {
+  if (!state.highlightOpen) return;
+  state.highlightOpen = false;
+  dom.hlPanel.setAttribute('aria-hidden', 'true');
+  const d = animate && !reduceMotion ? 1 : 0;
+  gsap.to(dom.scrim, { opacity: 0, duration: 0.3 * d, onComplete: () => { if (!state.flyoutOpen) dom.scrim.hidden = true; } });
+  gsap.to(dom.hlPanel, { xPercent: 105, duration: 0.4 * d, ease: 'power3.in', onComplete: () => gsap.set(dom.hlPanel, { visibility: 'hidden' }) });
+  dom.highlightBtn.focus({ preventScroll: true });
+}
+
+dom.highlightBtn.addEventListener('click', openHighlight);
+dom.hlClose.addEventListener('click', () => closeHighlight());
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    if (state.flyoutOpen) closeFlyout();
+    if (state.highlightOpen) closeHighlight();
+    else if (state.flyoutOpen) closeFlyout();
     else stopTour();
   }
   if (!state.flyoutOpen) return;

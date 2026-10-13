@@ -14,6 +14,7 @@ Interactive prototype for communicating Oriflame customer journeys. Each journey
 - **Journeys:** Registration, Newsletter, Brand Partner Training (Onboarding), Purchase and CRM journeys, switched by tabs (Revieve Beauty Tools is hidden for now)
 - **Reference numbers:** pages have references (R-1 … R-46, E-1 … E-6, NL-1 … NL-8, O-1 … O-15, P-1 … P-46, CRM-n.n) and an audience badge: **M** = Member, **BrP** = Brand Partner
 - **User-flow key:** start/end points, steps, envelope-shaped email steps, phone-shaped push/SMS/WhatsApp steps, UML decisions, UI elements, direct connections and dashed *no direct connection* links with ⚠ findings
+- **Summary bar:** under the tabs, key metrics for the selected journey and a **Highlight** button that opens a panel of key takeaways. Placeholders until content is supplied via `summary: { metrics: [{ label, value }], highlights: [{ title, text }] }` on a journey
 - **Canvas:** drag to pan, <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + scroll or pinch to zoom, zoom controls and fit-to-screen
 - **Walkthrough:** a guided camera tour through every step of the journey
 - **Page flyout:** animated stats, traffic sources and destinations, challenges and opportunities, with prev/next navigation (← → keys)
