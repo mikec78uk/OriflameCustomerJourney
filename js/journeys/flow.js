@@ -34,6 +34,9 @@ export const FLOW_LEGEND = [
   { kind: 'finding', label: 'Finding' },
 ];
 
+// Legend entry for journeys that include steps not available in the UK (see `notUk`).
+export const NOT_UK_LEGEND = { kind: 'not-uk', label: 'Not available in the UK' };
+
 // Placement helpers on a PDF artboard. Coordinates are PDF pixels; `ox`/`oy` shift them onto the canvas.
 // Page `y` values are the PDF card tops; cards keep the PDF card centre so connectors line up.
 export function artboard({ ox = 60, oy = 60, metrics = false } = {}) {
@@ -44,13 +47,15 @@ export function artboard({ ox = 60, oy = 60, metrics = false } = {}) {
     // `screenshot` overrides the image name when a page appears differently in this journey.
     // `type`: 'step' | 'email' | 'push' (phone-shaped: push, SMS or WhatsApp). `channels` lists every channel
     // a CRM send uses, e.g. ['Email', 'Push']. `description` comes from source documents (default TBD).
+    // `notUk` marks steps that exist in other markets but not in the UK; they are shown faded and labelled.
     page(ref, name, x, y, {
       id = ref.toLowerCase(), audience = null, type = 'step', challenges = [], flag = null, screenshot = null,
-      channels = null, description = null,
+      channels = null, description = null, notUk = false,
     } = {}) {
       return {
         id,
         ref,
+        notUk,
         screenshot,
         channels,
         description,
@@ -69,16 +74,20 @@ export function artboard({ ox = 60, oy = 60, metrics = false } = {}) {
       };
     },
     // Start / end points (yellow circles in the source key), placed by centre.
-    terminal(id, label, cx, cy, { d = 150, tag = null } = {}) {
-      return { id, label, tag, x: cx - d / 2 - ox, y: cy - d / 2 - oy, w: d, h: d };
+    terminal(id, label, cx, cy, { d = 150, tag = null, notUk = false } = {}) {
+      return { id, label, tag, notUk, x: cx - d / 2 - ox, y: cy - d / 2 - oy, w: d, h: d };
     },
     // UI elements (banners, buttons, icons) that lead between pages.
     trigger(id, label, x, y, w, h, { variant = 'light', caption = null, icon = null } = {}) {
       return { id, label, caption, icon, variant, x: x - ox, y: y - oy, w, h };
     },
     // UML decision (triangle), placed by centre.
-    decision(id, label, cx, cy, { size = 100 } = {}) {
-      return { id, label, size, x: cx - size / 2 - ox, y: cy - size / 2 - oy };
+    decision(id, label, cx, cy, { size = 100, notUk = false } = {}) {
+      return { id, label, size, notUk, x: cx - size / 2 - ox, y: cy - size / 2 - oy };
+    },
+    // Text banner placed above a group of steps (rendered as a borderless group label).
+    banner(id, label, x, y, { variant = 'not-uk' } = {}) {
+      return { id, label, variant, x: x - ox, y: y - oy, w: 1, h: 1 };
     },
     // Something the flow expects but that doesn't exist yet (dashed outline in the source).
     ghost(id, label, x, y, { caption = 'Does not exist yet', w = W, h = PDF_CARD_H } = {}) {
@@ -96,7 +105,7 @@ export function artboard({ ox = 60, oy = 60, metrics = false } = {}) {
 export function finalize({ nodes, terminals = [], triggers = [], ghosts = [], decisions = [], edges, screenshots = new Set(), describeTerminal = {} }) {
   const byId = new Map([...nodes, ...terminals, ...triggers, ...ghosts, ...decisions].map((x) => [x.id, x]));
   const isPage = (id) => nodes.some((n) => n.id === id);
-  const pageLabel = (n) => (n.ref ? `${n.ref} ${n.name}` : n.name);
+  const pageLabel = (n) => `${n.ref ? `${n.ref} ${n.name}` : n.name}${n.notUk ? ' – not in UK' : ''}`;
   const triggerName = (t) => (t.icon ? `${t.label} icon` : [t.caption, t.label].filter(Boolean).join(' – '));
   const direct = edges.filter((x) => x.style !== 'none');
   const describe = (id) => (isPage(id) ? pageLabel(byId.get(id)) : describeTerminal[id] || byId.get(id).label);

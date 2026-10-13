@@ -3,9 +3,9 @@
 // following the document's journey numbering. Journeys triggered on the site are drawn in their own flows
 // (Welcome + Members Upgrade → Registration; Leads welcome → Newsletter).
 
-import { artboard, finalize, FLOW_LEGEND } from './flow.js';
+import { artboard, finalize, FLOW_LEGEND, NOT_UK_LEGEND } from './flow.js';
 
-const { page, terminal, decision, edge: e } = artboard({ ox: 0, oy: 0 });
+const { page, terminal, decision, banner, edge: e } = artboard({ ox: 0, oy: 0 });
 const CRM = 'CRM journeys overview (BCM markets) 2025';
 
 // Layout grid: one row per flow; steps every 380px after the trigger.
@@ -18,6 +18,11 @@ const lane = (id, label, y, h) => ({ id, label, x: 40, y, w: 2940, h });
 
 // Rows
 const A = 200, B = 520, C = 840, D1 = 1160, D2 = 1420, E1 = 1880, E2 = 2140, F = 2460, G = 2780, H = 3320;
+
+// Steps from the overview that don't apply in the UK, labelled above the step.
+const banners = [
+  banner('not-uk-15-2', 'Not applicable to the UK', col(1), E1 - 118),
+];
 
 const groups = [
   lane('lane-6', '6 · Campaign Support – Builders & Sellers · Live', 60, 280),
@@ -72,18 +77,18 @@ const nodes = [
   // 15. Reactivation
   step('15.1', 'Reactivation email – segment specific', 0, E1, { ...email(),
     description: `Reactivation journey 1 – 7th day of each campaign (${CRM}). Trigger, once per campaign: Members and Brand Partners inactive for 3 campaigns, or inactive with an expiring Wallet balance at the end of the campaign. Expiry Wallet reminder, reactivation offer (if available in the market), eCatalogue & best offers, campaign highlights for Builders & Sellers to sell/activate their network. Versions for Members, Builders & Sellers, and a general version with expiring wallet.` }),
-  step('15.2', 'Expiry Wallet final reminder', 1, E1, { ...push(),
-    description: `Reactivation journey 1 – end of campaign, if there is still an expiring Wallet amount (${CRM}). Expiry amount and date reminder, best offers / eCatalogue. WhatsApp is planned only in pilot markets (ID, RO, PT).` }),
+  step('15.2', 'Expiry Wallet final reminder', 1, E1, { ...push(), notUk: true,
+    description: `Not applicable to the UK. Reactivation journey 1 – end of campaign, if there is still an expiring Wallet amount (${CRM}). Expiry amount and date reminder, best offers / eCatalogue. WhatsApp is planned only in pilot markets (ID, RO, PT).` }),
   step('15.3', 'Inactivity alert for Sponsors', 0, E2, { ...email(),
-    description: `Reactivation journey 2 – 11th day of each campaign (${CRM}). Trigger, once per campaign: active Sponsors with downline members who are inactive for 3 campaigns, have an expiring Wallet balance, or are inactive Starters from the previous campaign. Reminder to motivate and support the downline, link to the activity report, and business tips on what to say. Manager alerts and a Business App push are listed as “to be added later”.` }),
+    description: `Reactivation journey 2 – 8th day of each campaign in the UK (the ${CRM} gives the 11th day). Trigger, once per campaign: active Sponsors with downline members who are inactive for 3 campaigns, have an expiring Wallet balance, or are inactive Starters from the previous campaign. Reminder to motivate and support the downline, link to the activity report, and business tips on what to say. Manager alerts and a Business App push are listed as “to be added later”.` }),
 
   // 14. Birthday
   step('14.1', 'Birthday offer', 0, F, { ...email(),
     description: `Birthday journey – on the birthday (${CRM}). Birthday congratulations and birthday offer for Members and Brand Partners. A WhatsApp message for those who didn't open the email is available only in the pilot market (ID).` }),
 
   // 16. Profile completion
-  step('16.1', 'Complete your profile and earn XYZ Hearts!', 0, G, { ...push(),
-    description: `Profile completion journey (new, proposed) – Push to everyone with missing contact data (${CRM}). Trigger: once per quarter, check for contacts missing date of birth, email or phone number (max 2 times per contact).` }),
+  step('16.1', 'Complete your profile and general benefits', 0, G, { ...push(),
+    description: `Profile completion journey (new, proposed) – Push to everyone with missing contact data, promoting profile completion and general benefits (UK version; the ${CRM} shows “Complete your profile and earn XYZ Hearts!”). Trigger: once per quarter, check for contacts missing date of birth, email or phone number (max 2 times per contact).` }),
   step('16.2', 'Complete your profile (2 versions)', 3, G, { ...email(),
     description: `Profile completion journey – Email when an email address is available (${CRM}). 2 versions: missing DoB (“Provide your DoB and don't miss a birthday gift…”) and general (“Make your beauty journey uniquely yours!”), both with a Beauty Rewards intro. CTA: complete your profile and earn hearts/rewards. After sending, the journey exit is stamped to avoid repetitive communication.` }),
   step('16.3', 'Complete your profile (SMS)', 3, G + 250, { ...push(['SMS']), flag: 'Optional (if cost allows)',
@@ -138,8 +143,8 @@ const edges = [
   e('d-4-qualifying', 'exit-4', { fromSide: 'b', toSide: 't', label: 'Yes' }),
 
   e('t-15-1', 'crm-15-1', { delay: { wait: 'Day 7', day: 'of campaign' } }),
-  e('crm-15-1', 'crm-15-2', { delay: { wait: 'End of campaign', day: 'if wallet still expiring' } }),
-  e('t-15-2', 'crm-15-3', { delay: { wait: 'Day 11', day: 'of campaign' } }),
+  e('crm-15-1', 'crm-15-2', { notUk: true, delay: { wait: 'End of campaign', day: 'if wallet still expiring' } }),
+  e('t-15-2', 'crm-15-3', { delay: { wait: 'Day 8', day: 'of campaign' } }),
 
   e('t-14', 'crm-14-1', { delay: { wait: 'On birthday' } }),
 
@@ -167,7 +172,7 @@ export const crm = {
   nodes,
   terminals,
   decisions,
-  groups,
+  groups: [...groups, ...banners],
   edges,
   legend: [
     { kind: 'terminal', label: 'Trigger / Exit' },
@@ -177,5 +182,6 @@ export const crm = {
     { kind: 'aud-brp', label: 'Brand Partner' },
     { kind: 'flow', label: 'Sequence' },
     { kind: 'delay', label: 'Timing' },
+    NOT_UK_LEGEND,
   ],
 };

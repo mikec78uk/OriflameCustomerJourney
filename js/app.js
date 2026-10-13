@@ -291,6 +291,7 @@ function cardTags(node) {
       ${node.ref ? `<span class="ref">${escapeHtml(node.ref)}</span>` : ''}
       ${node.audience ? `<span class="${audienceClass(node.audience)}" title="${escapeHtml(node.audience.label)}">${escapeHtml(node.audience.code)}</span>` : ''}
       ${channelChips(node)}
+      ${node.notUk ? '<span class="not-uk-chip" title="Not available in the UK">Not in UK</span>' : ''}
       <span class="card__open" aria-hidden="true">${ICONS.open}</span>
     </span>`;
 }
@@ -301,7 +302,11 @@ function buildCanvas(journey) {
   dom.world.style.height = `${height}px`;
 
   listOf(journey, 'groups').forEach((g) => {
-    const n = place(el('div', 'group', `<span class="group__label">${escapeHtml(g.label)}</span>`), g);
+    // Banners are borderless labels (e.g. marking steps that aren't available in the UK).
+    const n = g.variant
+      ? place(el('div', `banner banner--${g.variant}`, `<span class="banner__icon" aria-hidden="true">⊘</span>${escapeHtml(g.label)}`), { x: g.x, y: g.y })
+      : place(el('div', 'group', `<span class="group__label">${escapeHtml(g.label)}</span>`), g);
+    if (g.variant) { n.style.width = ''; n.style.height = ''; }
     n.dataset.id = g.id;
     dom.world.appendChild(n);
   });
@@ -319,6 +324,7 @@ function buildCanvas(journey) {
     marker('arrow'),
     marker('arrow-lit', 'var(--ori-secondary-main)'),
     marker('arrow-none', 'var(--flow-none)'),
+    marker('arrow-muted', 'var(--ori-grey-300)'),
   );
   svgRoot.appendChild(defs);
   const edgeLayer = svg('g');
@@ -330,7 +336,12 @@ function buildCanvas(journey) {
   journey.edges.forEach((e) => {
     const pts = routeEdge(journey, e);
     const none = e.style === 'none';
-    const path = svg('path', { d: roundedPath(pts), class: `edge${none ? ' edge--none' : ''}`, 'marker-end': none ? 'url(#arrow-none)' : 'url(#arrow)' });
+    const muted = !!e.notUk; // connector into or within steps not available in the UK
+    const path = svg('path', {
+      d: roundedPath(pts),
+      class: `edge${none ? ' edge--none' : ''}${muted ? ' edge--not-uk' : ''}`,
+      'marker-end': none ? 'url(#arrow-none)' : muted ? 'url(#arrow-muted)' : 'url(#arrow)',
+    });
     edgeLayer.appendChild(path);
     const len = path.getTotalLength();
     const rec = { ...e, path, len, labelEl: null, flagEl: null, particles: [], startX: Math.min(pts[0][0], pts[pts.length - 1][0]) };
@@ -352,7 +363,7 @@ function buildCanvas(journey) {
 
     if (e.delay) {
       const p = path.getPointAtLength(len * (e.delayAt ?? 0.5));
-      const d = el('div', 'delay', `<span class="delay__icon" aria-hidden="true">${ICONS.clock}</span>
+      const d = el('div', `delay${e.notUk ? ' is-not-uk' : ''}`, `<span class="delay__icon" aria-hidden="true">${ICONS.clock}</span>
         <span class="delay__text"><strong>${escapeHtml(e.delay.wait)}</strong>${e.delay.day ? `<span>${escapeHtml(e.delay.day)}</span>` : ''}</span>`);
       d.setAttribute('role', 'note');
       d.setAttribute('aria-label', `Time delay: ${[e.delay.wait, e.delay.day].filter(Boolean).join(', ')}`);
@@ -369,7 +380,7 @@ function buildCanvas(journey) {
       rec.flagEl = f;
     }
 
-    if (!none) {
+    if (!none && !muted) {
       const count = Math.max(1, Math.round(len / 160));
       for (let i = 0; i < count; i++) {
         const c = svg('circle', { r: 3, class: 'particle', opacity: 0 });
@@ -381,7 +392,7 @@ function buildCanvas(journey) {
   });
 
   listOf(journey, 'decisions').forEach((d) => {
-    const n = el('div', 'decision', `
+    const n = el('div', `decision${d.notUk ? ' is-not-uk' : ''}`, `
       <svg class="decision__shape" viewBox="0 0 ${d.size} ${d.size}" aria-hidden="true">
         <polygon points="${d.size / 2},1.5 ${d.size - 1.5},${d.size - 1.5} 1.5,${d.size - 1.5}" />
       </svg>
@@ -392,7 +403,7 @@ function buildCanvas(journey) {
   });
 
   listOf(journey, 'terminals').forEach((t) => {
-    const n = place(el('div', `terminal${t.w < 100 ? ' terminal--small' : ''}`,
+    const n = place(el('div', `terminal${t.w < 100 ? ' terminal--small' : ''}${t.notUk ? ' is-not-uk' : ''}`,
       `${t.tag ? `<span class="terminal__tag">${escapeHtml(t.tag)}</span>` : ''}<span class="terminal__label">${escapeHtml(t.label)}</span>`), t);
     n.dataset.id = t.id;
     dom.world.appendChild(n);
@@ -421,7 +432,7 @@ function buildCanvas(journey) {
   });
 
   journey.nodes.forEach((node) => {
-    const card = el('button', `card${node.flow ? ' card--flow' : ''}${node.type === 'email' ? ' card--email' : ''}${node.type === 'push' ? ' card--push' : ''}`);
+    const card = el('button', `card${node.flow ? ' card--flow' : ''}${node.type === 'email' ? ' card--email' : ''}${node.type === 'push' ? ' card--push' : ''}${node.notUk ? ' is-not-uk' : ''}`);
     card.type = 'button';
     card.dataset.id = node.id;
     const title = [node.ref, node.fullName || node.name, node.audience && `(${node.audience.label})`].filter(Boolean).join(' ');
@@ -458,7 +469,7 @@ function buildCanvas(journey) {
     state.cards.set(node.id, card);
 
     if (node.flag) {
-      const f = el('div', 'flag flag--node', `<span aria-hidden="true">⚠</span> ${escapeHtml(node.flag)}`);
+      const f = el('div', `flag flag--node${node.notUk ? ' is-not-uk' : ''}`, `<span aria-hidden="true">⚠</span> ${escapeHtml(node.flag)}`);
       Object.assign(f.style, { left: `${node.x + node.w / 2}px`, top: `${node.y + node.h + 16}px` });
       dom.world.appendChild(f);
     }
@@ -483,7 +494,7 @@ function lightEdgesFor(id) {
   state.edges.forEach((e) => {
     const lit = id != null && edgeTouches(e, id);
     e.path.classList.toggle('is-lit', lit);
-    if (e.style !== 'none') e.path.setAttribute('marker-end', lit ? 'url(#arrow-lit)' : 'url(#arrow)');
+    if (e.style !== 'none' && !e.notUk) e.path.setAttribute('marker-end', lit ? 'url(#arrow-lit)' : 'url(#arrow)');
   });
 }
 
@@ -781,7 +792,7 @@ function startTour() {
   dom.tourBtn.setAttribute('aria-pressed', 'true');
   dom.tourBtn.querySelector('span').textContent = 'Stop';
   const tl = gsap.timeline({ onComplete: () => { stopTour(); fitView(); } });
-  j.nodes.forEach((node, i) => {
+  j.nodes.filter((node) => !node.notUk).forEach((node, i) => { // skip steps not available in the UK
     tl.add(() => centerOn(node, 1, i === 0 ? 1.1 : 0.9));
     tl.add(() => setActive(node.id, { dimOthers: true }), '+=0.45');
     tl.fromTo(state.cards.get(node.id), { scale: 1 }, { scale: 1.06, duration: 0.25, yoyo: true, repeat: 1, ease: 'power2.out' }, '<');
@@ -845,10 +856,12 @@ function renderDetail(node) {
       ${node.ref ? `<span class="ref">${escapeHtml(node.ref)}</span>` : ''}
       ${node.audience ? `<span class="${audienceClass(node.audience)}">${escapeHtml(node.audience.code)}</span><span class="detail__aud">${escapeHtml(node.audience.label)}</span>` : ''}
       ${channelChips(node)}
+      ${node.notUk ? '<span class="not-uk-chip" title="Not available in the UK">Not in UK</span>' : ''}
     </div>` : '';
 
   dom.flyDetail.innerHTML = `${tags}
     <h2 class="detail__title" id="fly-title">${escapeHtml(title)}${d.placeholder ? '<span class="tag">Placeholder data</span>' : ''}</h2>
+    ${node.notUk ? `<p class="not-uk-notice"><span aria-hidden="true">⊘</span> Not available in the UK. This step is part of the CRM journey in other BCM markets and is shown for reference only.</p>` : ''}
     <p class="detail__desc">${escapeHtml(d.description)}</p>
     ${node.stats && state.journey.metrics === false ? `
     <section class="section"><h3 class="section__title">Key Behaviour</h3>

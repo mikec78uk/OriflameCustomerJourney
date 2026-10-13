@@ -289,6 +289,26 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
 .legend__swatch--delay { display: inline-grid; place-items: center; color: var(--ori-info-dark); }
 .legend__swatch--delay svg { width: 13px; height: 13px; }
 
+/* Steps not available in the UK: faded, desaturated and labelled. */
+.is-not-uk { opacity: .42; filter: grayscale(1); }
+.card.is-not-uk:hover, .card.is-not-uk:focus-visible, .card.is-not-uk.is-active { opacity: .85; }
+.edge--not-uk, .edge--not-uk.is-lit { stroke: var(--ori-grey-300); stroke-width: 1.5; stroke-dasharray: 4 5; }
+.not-uk-chip {
+  display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 999px; white-space: nowrap;
+  font-size: 10px; font-weight: 700; color: var(--ori-text-secondary); background: var(--ori-white); border: 1px dashed var(--ori-grey-500);
+}
+.banner {
+  position: absolute; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; pointer-events: none;
+  padding: 5px 12px; border-radius: 999px; border: 1px dashed var(--ori-grey-500); background: var(--ori-white);
+  font-size: 15px; font-weight: 700; letter-spacing: .01em; color: var(--ori-text-primary);
+}
+.banner__icon { font-size: 17px; color: var(--ori-text-secondary); }
+.not-uk-notice {
+  margin: 0 0 12px; padding: 8px 10px; border-radius: 6px; font-size: 12px; line-height: 1.4;
+  background: var(--ori-grey-100); border: 1px dashed var(--ori-grey-500); color: var(--ori-text-primary);
+}
+.legend__swatch--not-uk { width: 16px; height: 11px; border-radius: 2px; border: 1px dashed var(--ori-grey-500); background: var(--ori-grey-200); opacity: .7; }
+
 .legend { flex-wrap: wrap; row-gap: 6px; max-width: min(760px, 60vw); }
 .legend__swatch { flex: none; }
 .legend__swatch--terminal { width: 12px; height: 12px; border-radius: 50%; background: var(--ori-warning-light); border: 1px solid var(--ori-warning-main); }

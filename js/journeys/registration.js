@@ -6,9 +6,9 @@
 // The end of the flow (welcome emails broken out + CRM email sequence) follows a later update
 // to the source, placed on the same grid.
 
-import { artboard, finalize, FLOW_LEGEND, SOURCE as source } from './flow.js';
+import { artboard, finalize, FLOW_LEGEND, NOT_UK_LEGEND, SOURCE as source } from './flow.js';
 
-const { page: flowPage, terminal, trigger, decision, edge: e } = artboard({ ox: 60, oy: 60 });
+const { page: flowPage, terminal, trigger, decision, banner, edge: e } = artboard({ ox: 60, oy: 60 });
 
 // CRM email content and timings from "CRM journeys overview (BCM markets) 2025".
 const CRM = 'CRM journeys overview (BCM markets) 2025';
@@ -78,10 +78,11 @@ const nodes = [
   page(37, 'Business Tools Register [Register a VIP Customer]', 5844, 681, { audience: 'BrP' }),
   page(38, 'Business Tools Register [Activate registered consultants]', 5844, 860, { audience: 'BrP' }),
 
-  // CRM Welcome journey after the welcome email (variants of the same email per audience)
+  // CRM Welcome journey after the welcome email (variants of the same email per audience).
+  // Not available in the UK: shown faded and labelled (notUk).
   ...['M', 'BrP'].flatMap((audience) => {
     const y = audience === 'M' ? 1800 : 215;
-    const email = { audience, type: 'email', prefix: 'E' };
+    const email = { audience, type: 'email', prefix: 'E', notUk: true };
     return [
       page(1, 'Beauty Rewards intro & motivation to place 1st order', 5538, y, {
         ...email,
@@ -102,17 +103,17 @@ const nodes = [
     ];
   }),
 
-  // CRM Members Upgrade journey: Members who don't complete the upgrade (R-22)
+  // CRM Members Upgrade journey: Members who don't complete the upgrade (R-22). Not available in the UK (notUk).
   page(5, 'Upgrade to Brand Partner', 6060, 1549, {
-    audience: 'M', type: 'email', prefix: 'E',
+    audience: 'M', type: 'email', prefix: 'E', notUk: true,
     description: `Members Upgrade journey – Email 1, sent immediately (${CRM}). Promotes Brand Partner benefits, business opportunities and the compensation plan, with an Upgrade to Brand Partner CTA. Journey triggers: Member is a Sponsor, active during the last 3 campaigns, with at least 2 first-line members who made purchases; visited/engaged with the “Upgrade to Brand Partner” pages and had at least 1 order within the 4 months before; last 3 orders total 200 BPs or more; completion of the Welcome Programme.`,
   }),
   page(6, 'Reminder to upgrade', 6460, 1549, {
-    audience: 'M', type: 'email', prefix: 'E', flag: 'To be added later',
+    audience: 'M', type: 'email', prefix: 'E', flag: 'To be added later', notUk: true,
     description: `Members Upgrade journey – Email 2 (${CRM}), sent X weeks later to Members who haven't upgraded yet. Reminder of the upgrade opportunity, emphasising Brand Partner benefits and earning opportunities. Marked “To be added later” in the CRM overview.`,
   }),
   page(1, 'Upgrade to Brand Partner', 6820, 1549, {
-    audience: 'M', type: 'push', prefix: 'P', flag: 'To be added later',
+    audience: 'M', type: 'push', prefix: 'P', flag: 'To be added later', notUk: true,
     description: `Members Upgrade journey – Push sent with the reminder email (${CRM}). Marked “To be added later” in the CRM overview.`,
   }),
 ];
@@ -125,8 +126,8 @@ const terminals = [
   terminal('google', 'Google Search Results', 200, 880),
   terminal('ai-tools', 'AI Tools Referral Links', 204, 1080),
   terminal('end-brp', 'BrP', 5830, 1430, { d: 64 }),
-  terminal('exit-csj-brp', 'Exit journey · added to Campaign Support Journey', 6380, 720, { d: 150 }),
-  terminal('exit-csj-m', 'Exit journey · added to Campaign Support Journey', 6380, 2310, { d: 150 }),
+  terminal('exit-csj-brp', 'Exit journey · added to Campaign Support Journey', 6380, 720, { d: 150, notUk: true }),
+  terminal('exit-csj-m', 'Exit journey · added to Campaign Support Journey', 6380, 2310, { d: 150, notUk: true }),
 ];
 
 // UI elements on UK Home that lead into registration.
@@ -139,9 +140,16 @@ const triggers = [
 
 const notes = [];
 
+// Banners above the CRM Welcome sequences that aren't available in the UK.
+const banners = [
+  banner('not-uk-brp', 'Not available in the UK · CRM Welcome journey runs in other BCM markets', 5500, 150),
+  banner('not-uk-m', 'Not available in the UK · CRM Welcome journey runs in other BCM markets', 5500, 1722),
+  banner('not-uk-upgrade', 'Not available in the UK · CRM Members Upgrade journey runs in other BCM markets', 6060, 1462),
+];
+
 const decisions = [
-  decision('order-placed-brp', 'Order placed?', 6380, 279),
-  decision('order-placed-m', 'Order placed?', 6380, 1864),
+  decision('order-placed-brp', 'Order placed?', 6380, 279, { notUk: true }),
+  decision('order-placed-m', 'Order placed?', 6380, 1864, { notUk: true }),
   decision('upgraded', 'Upgraded?', 5830, 1613),
 ];
 
@@ -152,12 +160,12 @@ const decisions = [
 const crmSequence = (welcome, aud) => {
   const y = aud === 'm' ? 1864 : 279;
   return [
-    e(welcome, `e-1-${aud}`, { delay: { wait: '+3 days', day: 'Day 4' } }),
-    e(`e-1-${aud}`, `e-2-${aud}`, { delay: { wait: '+6 days', day: 'Day 7' } }),
-    e(`e-2-${aud}`, `order-placed-${aud}`),
-    e(`order-placed-${aud}`, `e-3-${aud}`, { label: 'Yes', labelAt: 0.12, delay: { wait: '+9 days', day: 'Day 10' }, delayAt: 0.6 }),
-    e(`order-placed-${aud}`, `exit-csj-${aud}`, { fromSide: 'b', toSide: 't', label: 'No', labelAt: 0.82 }),
-    e(`order-placed-${aud}`, `e-4-${aud}`, { fromSide: 'b', via: [[6380, y + 255]], delay: { wait: 'Next day', day: 'after 1st purchase' }, delayAt: 0.72 }),
+    e(welcome, `e-1-${aud}`, { notUk: true, delay: { wait: '+3 days', day: 'Day 4' } }),
+    e(`e-1-${aud}`, `e-2-${aud}`, { notUk: true, delay: { wait: '+6 days', day: 'Day 7' } }),
+    e(`e-2-${aud}`, `order-placed-${aud}`, { notUk: true }),
+    e(`order-placed-${aud}`, `e-3-${aud}`, { notUk: true, label: 'Yes', labelAt: 0.12, delay: { wait: '+9 days', day: 'Day 10' }, delayAt: 0.6 }),
+    e(`order-placed-${aud}`, `exit-csj-${aud}`, { notUk: true, fromSide: 'b', toSide: 't', label: 'No', labelAt: 0.82 }),
+    e(`order-placed-${aud}`, `e-4-${aud}`, { notUk: true, fromSide: 'b', via: [[6380, y + 255]], delay: { wait: 'Next day', day: 'after 1st purchase' }, delayAt: 0.72 }),
   ];
 };
 
@@ -231,9 +239,9 @@ const edges = [
   e('r-21', 'r-22'),
   e('r-22', 'upgraded'),
   e('upgraded', 'end-brp', { fromSide: 't', toSide: 'b', label: 'Yes' }),
-  e('upgraded', 'e-5-m', { label: 'No', labelAt: 0.15, delay: { wait: 'Immediately' }, delayAt: 0.62 }),
-  e('e-5-m', 'e-6-m', { delay: { wait: 'After X weeks' } }),
-  e('e-6-m', 'p-1-m'),
+  e('upgraded', 'e-5-m', { notUk: true, label: 'No', labelAt: 0.15, delay: { wait: 'Immediately' }, delayAt: 0.62 }),
+  e('e-5-m', 'e-6-m', { notUk: true, delay: { wait: 'After X weeks' } }),
+  e('e-6-m', 'p-1-m', { notUk: true }),
 ];
 
 // Pages with a screenshot in assets/screens/, named by reference number (redacted web JPEGs).
@@ -254,7 +262,7 @@ export const registration = {
   triggers,
   notes,
   decisions,
-  groups: [],
+  groups: banners,
   edges,
-  legend: FLOW_LEGEND,
+  legend: [...FLOW_LEGEND, NOT_UK_LEGEND],
 };
