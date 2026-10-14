@@ -18,6 +18,11 @@ export const journeys = [
   newsletter,
   training,
   purchase,
+  {
+    id: 'subscription',
+    name: 'Subscription',
+    status: 'coming-soon',
+  },
   crm,
   {
     id: 'revieve',
