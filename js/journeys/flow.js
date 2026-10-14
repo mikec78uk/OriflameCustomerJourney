@@ -99,6 +99,11 @@ export function artboard({ ox = 60, oy = 60, metrics = false, sy = 1, pdfCardH =
     ghostAt(id, label, cx, cy, { caption = '', w = W, h = 72, variant = null } = {}) {
       return { id, label, caption, variant, x: cx - w / 2 - ox, y: cy * sy - h / 2 - oy, w, h };
     },
+    // Lettered highlight area (shaded on the canvas, referenced from the Highlight panel), from one or more
+    // source corner boxes [x0, y0, x1, y1] that are merged into a single shape.
+    area(id, letter, boxes, opts = {}) {
+      return { id, letter, ...opts, boxes: boxes.map(([x0, y0, x1, y1]) => ({ x: x0 - ox, y: y0 * sy - oy, w: x1 - x0, h: (y1 - y0) * sy })) };
+    },
     // Section frame / swimlane from source corner coordinates.
     frame(id, label, x0, y0, x1, y1, opts = {}) {
       return { id, label, ...opts, x: x0 - ox, y: y0 * sy - oy, w: x1 - x0, h: (y1 - y0) * sy };

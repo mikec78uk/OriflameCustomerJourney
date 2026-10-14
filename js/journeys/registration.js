@@ -9,7 +9,7 @@
 import { artboard, finalize, FLOW_LEGEND, NOT_UK_LEGEND, SOURCE as source } from './flow.js';
 
 // oy shifts the PDF artboard down 600px to make room for the BCM 6.0 swimlane at the top of the canvas.
-const { page: flowPage, terminal, trigger, decision, banner, edge: e } = artboard({ ox: 60, oy: -540 });
+const { page: flowPage, terminal, trigger, decision, banner, area, edge: e } = artboard({ ox: 60, oy: -540 });
 
 // CRM email content and timings from "CRM journeys overview (BCM markets) 2025".
 const CRM = 'CRM journeys overview (BCM markets) 2025';
@@ -298,6 +298,42 @@ export const registration = {
   notes,
   decisions,
   groups: [...lanes, ...banners],
+  areas: [
+    // Area A from "Oriflame Journey Mapping WIP": the ways in plus both verification/form routes (R-3 … R-16, R-27 … R-32).
+    area('area-a', 'A', [[1234, 429, 2682, 1799], [2500, 429, 4790, 1112]], { caption: 'Business-model decision before a reason to buy' }),
+  ],
+  summary: {
+    intro: 'We mapped and expert-reviewed Oriflame UK’s as-is sign-up, sign-in and registration journeys: the Member (VIP) and Brand Partner routes, from first visit to first dashboard, alongside the incoming BCM 6.0 flow. These findings haven’t yet been tested with users or checked against current funnel data.',
+    highlights: [
+      {
+        title: 'Registration asks people to make a business-model decision before they have a reason to buy',
+        area: 'A',
+        bullets: [
+          'Visitors encounter several near-identical ways in and eight different names for three roles.',
+          'They must be linked to a seller they can’t choose or decline, and sometimes can’t contact.',
+          'Verification and form steps add effort before any value.',
+          'The first session can bring loading errors and a hard-to-find welcome discount.',
+        ],
+      },
+      {
+        title: 'BCM 6.0 simplifies the form, but leaves wider friction',
+        text: 'BCM 6.0 is due in test markets from 21 October. It replaces the two routes with one form and fewer fields.',
+        bullets: [
+          'Seller assignment remains unchanged. Removing guest checkout extends assignment to every buyer.',
+          'New friction is introduced: phone-only registration, terms accepted twice, and a sign-up button below the fold on mobile.',
+          'Registration moves inside checkout, so registration friction becomes checkout friction.',
+        ],
+      },
+      {
+        title: 'Mobile needs particular attention',
+        text: 'Oriflame says most of its revenue comes from mobile, and several of these issues only appear there.',
+      },
+      {
+        title: 'Current funnel data is needed',
+        text: 'Stakeholders recall an earlier review (spring 2026) showing about 86% registration abandonment, mostly at the first step. We haven’t seen the underlying data, and the flow has changed since. We’re requesting current GA funnel data to confirm or replace that figure.',
+      },
+    ],
+  },
   edges,
   legend: [...FLOW_LEGEND, NOT_UK_LEGEND],
 };

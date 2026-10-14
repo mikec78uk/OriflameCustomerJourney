@@ -19,6 +19,10 @@
   --ori-blue-50: #ceebef;
   --flow-none: var(--ori-offer-main);
   --ori-text-primary: #333333;
+  /* Lettered highlight areas (lavender, as in the journey-mapping source) */
+  --area-fill: #ece6fb;
+  --area-fill-strong: #d9cdf7;
+  --area-ink: #5b3fb8;
   --ori-text-secondary: #555555;
   --ori-text-disabled: #aaaaaa;
   --ori-default-dark: #111111;
@@ -413,7 +417,7 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
 .hl-panel__scroll { flex: 1; overflow-y: auto; padding: 56px 40px 40px; }
 .hl-panel__eyebrow { margin: 0 0 6px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ori-secondary-main); }
 .hl-panel__title { margin: 0 0 8px; font-size: 26px; font-weight: 700; color: var(--ori-default-dark); }
-.hl-panel__note { margin: 0 0 24px; font-size: 13px; color: var(--ori-text-secondary); }
+.hl-panel__note { margin: 0 0 24px; font-size: 14px; line-height: 1.5; color: var(--ori-text-primary); }
 .hl-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; counter-reset: hl; }
 .hl-item {
   counter-increment: hl; display: grid; grid-template-columns: 32px 1fr; gap: 12px; align-items: start;
@@ -425,6 +429,33 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
 }
 .hl-item__title { margin: 4px 0 4px; font-size: 14px; font-weight: 700; color: var(--ori-default-dark); }
 .hl-item__text { margin: 0; font-size: 13px; line-height: 1.45; color: var(--ori-text-secondary); }
+
+.hl-item__bullets { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; line-height: 1.45; color: var(--ori-text-secondary); }
+.hl-item__text + .hl-item__bullets { margin-top: 8px; }
+.hl-item { transition: border-color .3s, box-shadow .3s; }
+.hl-item.is-focus { border-color: var(--area-ink); box-shadow: 0 0 0 3px var(--area-fill); }
+.hl-area {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 4px 12px 4px 4px; border: 0; border-radius: 999px;
+  background: var(--area-fill); color: var(--area-ink); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.hl-area:hover { background: var(--area-fill-strong); }
+.hl-area .area-letter { width: 24px; height: 24px; font-size: 13px; }
+
+/* Lettered highlight areas on the canvas */
+.areas { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+.area { fill: var(--area-fill-strong); opacity: .45; }
+.area-letter {
+  display: inline-grid; place-items: center; flex: none; width: 88px; height: 88px; border-radius: 50%;
+  background: var(--area-ink); color: var(--ori-white); font-weight: 700; font-size: 48px; line-height: 1;
+}
+.area-badge {
+  position: absolute; z-index: 1; transform: translateY(-100%); display: flex; align-items: center; gap: 20px; max-width: 640px;
+  padding: 10px 28px 10px 10px; border: 0; border-radius: 999px; background: var(--ori-white); box-shadow: var(--ori-shadow-4);
+  font: inherit; text-align: left; cursor: pointer; transition: box-shadow .2s;
+}
+.area-badge:hover { box-shadow: 0 0 0 3px var(--area-fill-strong), var(--ori-shadow-4); }
+.area-badge__text { display: grid; gap: 4px; font-size: 22px; line-height: 1.25; font-weight: 600; color: var(--ori-default-dark); }
+.area-badge__eyebrow { font-size: 14px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--area-ink); }
 
 .scrim { position: fixed; inset: 0; background: rgba(17,17,17,.42); z-index: 20; opacity: 0; }
 .scrim[hidden] { display: none; }

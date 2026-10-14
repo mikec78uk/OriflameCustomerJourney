@@ -296,6 +296,51 @@ function place(n, b) {
   return n;
 }
 
+// Lettered highlight areas: shaded shapes behind the flow, linked both ways with the Highlight panel.
+function renderAreas(journey) {
+  const areas = listOf(journey, 'areas');
+  if (!areas.length) return;
+  const { width, height } = journey;
+  const layer = svg('svg', { class: 'areas', width, height, viewBox: `0 0 ${width} ${height}` });
+  areas.forEach((a) => {
+    // Rects share one group opacity so overlapping boxes read as a single shape.
+    const g = svg('g', { class: 'area', 'data-area': a.letter });
+    a.boxes.forEach((b) => g.appendChild(svg('rect', { x: b.x, y: b.y, width: b.w, height: b.h, rx: 44 })));
+    layer.appendChild(g);
+    const b = a.boxes[a.labelBox ?? 0];
+    const badge = el('button', 'area-badge', `<span class="area-letter">${escapeHtml(a.letter)}</span>
+      <span class="area-badge__text"><span class="area-badge__eyebrow">Highlight area ${escapeHtml(a.letter)}</span>${escapeHtml(a.caption || '')}</span>`);
+    badge.type = 'button';
+    badge.dataset.area = a.letter;
+    Object.assign(badge.style, { left: `${b.x + 32}px`, top: `${b.y + b.h - 32}px` });
+    badge.addEventListener('click', (ev) => { ev.stopPropagation(); openHighlight(a.letter); });
+    dom.world.appendChild(badge);
+  });
+  dom.world.appendChild(layer);
+}
+
+function areaBounds(letter) {
+  const a = listOf(state.journey, 'areas').find((x) => x.letter === letter);
+  if (!a) return null;
+  const minX = Math.min(...a.boxes.map((b) => b.x));
+  const minY = Math.min(...a.boxes.map((b) => b.y));
+  return { x: minX, y: minY, w: Math.max(...a.boxes.map((b) => b.x + b.w)) - minX, h: Math.max(...a.boxes.map((b) => b.y + b.h)) - minY };
+}
+
+function showArea(letter) {
+  const b = areaBounds(letter);
+  if (!b) return;
+  closeHighlight();
+  state.userMoved = true;
+  const r = dom.canvas.getBoundingClientRect();
+  const pad = r.width < 820 ? 24 : 64;
+  const hudSpace = 70;
+  const s = gsap.utils.clamp(MIN_SCALE, 1, Math.min((r.width - pad * 2) / b.w, (r.height - pad - hudSpace) / b.h));
+  tweenCam({ s, x: (r.width - b.w * s) / 2 - b.x * s, y: (r.height - hudSpace - b.h * s) / 2 - b.y * s + 10 }, 0.9);
+  const shape = dom.world.querySelector(`.area[data-area="${letter}"]`);
+  if (shape && !reduceMotion) gsap.fromTo(shape, { opacity: 1 }, { opacity: 0.45, duration: 0.5, repeat: 3, yoyo: true, delay: 0.7, clearProps: 'opacity' });
+}
+
 function cardTags(node) {
   if (!node.flow) return '';
   return `<span class="card__tags">
@@ -311,6 +356,8 @@ function buildCanvas(journey) {
   const { width, height } = journey;
   dom.world.style.width = `${width}px`;
   dom.world.style.height = `${height}px`;
+
+  renderAreas(journey);
 
   listOf(journey, 'groups').forEach((g) => {
     // Banners are borderless labels (e.g. marking steps that aren't available in the UK).
@@ -1067,16 +1114,21 @@ function renderSummary(journey) {
 
 gsap.set(dom.hlPanel, { xPercent: 105 });
 
-function openHighlight() {
+function openHighlight(focusArea) {
   const j = state.journey;
   if (!j) return;
   stopTour();
   if (state.flyoutOpen) closeFlyout(false);
   const items = j.summary?.highlights || PLACEHOLDER_SUMMARY.highlights;
   dom.hlJourney.textContent = j.name;
-  dom.hlNote.textContent = j.summary?.highlights ? 'Key takeaways for this flow.' : 'Key takeaways for this flow – content to be confirmed.';
-  dom.hlList.innerHTML = items.map((h) => `<li class="hl-item"><div>
-      <h3 class="hl-item__title">${escapeHtml(h.title)}</h3><p class="hl-item__text">${escapeHtml(h.text)}</p></div></li>`).join('');
+  dom.hlNote.textContent = j.summary?.intro || (j.summary?.highlights ? 'Key takeaways for this flow.' : 'Key takeaways for this flow – content to be confirmed.');
+  dom.hlList.innerHTML = items.map((h) => `<li class="hl-item"${h.area ? ` data-area="${escapeHtml(h.area)}"` : ''}><div>
+      <h3 class="hl-item__title">${escapeHtml(h.title)}</h3>
+      ${h.text ? `<p class="hl-item__text">${escapeHtml(h.text)}</p>` : ''}
+      ${h.bullets ? `<ul class="hl-item__bullets">${h.bullets.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>` : ''}
+      ${h.area ? `<button class="hl-area" type="button" data-area="${escapeHtml(h.area)}"><span class="area-letter">${escapeHtml(h.area)}</span>Show area ${escapeHtml(h.area)} on the flow</button>` : ''}
+    </div></li>`).join('');
+  dom.hlList.querySelectorAll('.hl-area').forEach((b) => b.addEventListener('click', () => showArea(b.dataset.area)));
   state.highlightOpen = true;
   dom.scrim.hidden = false;
   dom.hlPanel.setAttribute('aria-hidden', 'false');
@@ -1086,6 +1138,12 @@ function openHighlight() {
   gsap.to(dom.hlPanel, { xPercent: 0, duration: reduceMotion ? 0 : 0.55, ease: 'power4.out' });
   if (!reduceMotion) gsap.from(dom.hlList.children, { opacity: 0, x: 18, duration: 0.45, stagger: 0.07, delay: 0.2, ease: 'power3.out', clearProps: 'opacity,transform' });
   dom.hlClose.focus({ preventScroll: true });
+  const target = typeof focusArea === 'string' && dom.hlList.querySelector(`.hl-item[data-area="${focusArea}"]`);
+  if (target) {
+    target.scrollIntoView({ block: 'nearest' });
+    target.classList.add('is-focus');
+    setTimeout(() => target.classList.remove('is-focus'), 2400);
+  }
 }
 
 function closeHighlight(animate = true) {
@@ -1098,7 +1156,7 @@ function closeHighlight(animate = true) {
   dom.highlightBtn.focus({ preventScroll: true });
 }
 
-dom.highlightBtn.addEventListener('click', openHighlight);
+dom.highlightBtn.addEventListener('click', () => openHighlight());
 dom.hlClose.addEventListener('click', () => closeHighlight());
 
 document.addEventListener('keydown', (e) => {
