@@ -464,6 +464,9 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
   background: var(--ori-white); z-index: 21; display: flex; flex-direction: column;
   box-shadow: var(--ori-shadow-20); visibility: hidden;
 }
+.flyout--no-shot { width: min(720px, 100vw); }
+.flyout--no-shot .flyout__inner { grid-template-columns: minmax(0, 1fr); }
+.shot[hidden] { display: none; }
 .flyout__close {
   position: absolute; top: 34px; left: -48px; width: 49px; height: 43px; border: 0;
   background: var(--ori-white); border-radius: 8px 0 0 8px; display: grid; place-items: center;
@@ -480,16 +483,6 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
 }
 .shot__frame img { display: block; width: 100%; height: auto; }
 .shot__frame.is-scrollable { overflow-y: auto; scrollbar-width: thin; }
-.shot__placeholder {
-  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
-  color: var(--ori-text-disabled); font-size: 12px; text-align: center; padding: 24px;
-  background: repeating-linear-gradient(135deg, var(--ori-grey-50) 0 12px, var(--ori-grey-100) 12px 24px);
-}
-.shot__frame--pending, .shot__frame:has(.shot__placeholder) { height: clamp(420px, calc(100vh - 170px), 900px); }
-.shot__frame--pending {
-  display: grid; place-items: center; background: var(--ori-grey-200); box-shadow: none;
-  color: var(--ori-text-secondary); font-size: 14px; letter-spacing: .04em;
-}
 .shot__caption { margin-top: 10px; font-size: 11px; color: var(--ori-text-secondary); text-align: center; }
 
 .detail { min-width: 0; max-width: 480px; }
@@ -554,7 +547,6 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
   .shot { position: static; display: flex; flex-direction: column; align-items: center; }
   .shot { align-self: stretch; }
   .shot__frame { max-height: 60vh; }
-  .shot__frame--pending, .shot__frame:has(.shot__placeholder) { height: 60vh; }
   .detail { max-width: none; }
   .navbtn__label { display: none; }
 }

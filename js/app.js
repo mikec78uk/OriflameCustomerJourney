@@ -940,14 +940,13 @@ function renderDetail(node) {
   const d = node.detail;
   const title = node.fullName || node.name;
 
+  // Only pages with a screenshot show the image column; the rest get a narrower, text-only flyout.
   dom.flyShot.innerHTML = d.screenshot
     ? `<div class="shot__frame is-scrollable" tabindex="0" aria-label="Scrollable screenshot of ${escapeHtml(title)}"><img src="${d.screenshot}" alt="Screenshot of the ${escapeHtml(title)}" /></div>
        <figcaption class="shot__caption" hidden>Scroll to explore the page</figcaption>`
-    : d.screenshotPending
-      ? `<div class="shot__frame shot__frame--pending"><span>${escapeHtml(d.screenshotPending)}</span></div>`
-      : `<div class="shot__frame"><div class="shot__placeholder">
-         <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/><circle cx="15.5" cy="8.5" r="1.5"/></svg>
-         Screenshot to follow</div></div>`;
+    : '';
+  dom.flyShot.hidden = !d.screenshot;
+  dom.flyout.classList.toggle('flyout--no-shot', !d.screenshot);
 
   const tags = node.flow ? `<div class="detail__tags">
       ${node.ref ? `<span class="ref">${escapeHtml(node.ref)}</span>` : ''}

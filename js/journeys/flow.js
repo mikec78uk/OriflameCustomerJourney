@@ -160,11 +160,10 @@ export function finalize({ nodes, terminals = [], triggers = [], ghosts = [], de
     n.findings = n.challenges.length || TBD;
     n.stats = (n.ref && STATS[n.ref]) || null; // Google Analytics metrics, when supplied for this reference
     n.detail = {
-      // `screenshot: false` keeps a page on "Coming soon" even when its reference has an image.
+      // `screenshot: false` shows no image even when the page's reference has one.
       screenshot: n.screenshot === false ? null
         : n.screenshot ? `assets/screens/${n.screenshot}.jpg`
         : n.ref && screenshots.has(n.ref) ? `assets/screens/${n.ref}.jpg` : null,
-      screenshotPending: 'Coming soon',
       // Journey-specific text first, then the shared description for the page's screenshot, reference or id.
       description: n.description || DESCRIPTIONS[n.screenshot] || DESCRIPTIONS[n.ref] || DESCRIPTIONS[n.id] || TBD,
       keyBehaviour: [

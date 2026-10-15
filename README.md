@@ -5,7 +5,7 @@ Interactive prototype for communicating Oriflame customer journeys. Each journey
 **Live:** https://mikec78uk.github.io/OriflameCustomerJourney/
 
 > **Registration** includes a **BCM 6.0** swimlane (R-39 … R-46) showing the alternative registration flow after the business model change, lined up under the current flow.
-> **Registration**, **Newsletter** and **Brand Partner Training (Onboarding)** are final-deliverable content, transcribed from their user-flow PDFs. Anything not yet known is shown as **TBD**, and screenshots are marked *Coming soon*.
+> **Registration**, **Newsletter** and **Brand Partner Training (Onboarding)** are final-deliverable content, transcribed from their user-flow PDFs. Anything not yet known is shown as **TBD**, and pages without a screenshot show only their details (no image placeholder).
 > CRM emails from *CRM journeys overview (BCM markets) 2025* are added to the flows they belong to; live journeys not triggered by site actions are on the **CRM journeys** tab.
 > **Purchase** is the full site map and checkout from *Oriflame Journey Mapping WIP.pdf* (SHOP, INSPIRATION, ALL OFFERS, shopping example, checkout as-is and BCM 6.0 checkout), with the abandoned basket, Share & Earn, NovAge+ and Wellosophy CRM journeys in their own lanes.
 
