@@ -164,7 +164,8 @@ const edges = [
 // Pages with a screenshot in assets/screens/, named by reference number.
 const SCREENSHOTS = new Set([
   'CRM-6.1', 'CRM-6.3', 'CRM-6.5', 'CRM-6.6', 'CRM-6.7',
-  'CRM-7.1', 'CRM-7.3', 'CRM-7.5', 'CRM-7.6',
+  'CRM-7.1', 'CRM-7.2', 'CRM-7.3', 'CRM-7.5', 'CRM-7.6',
+  'CRM-4.1', 'CRM-4.2', 'CRM-4.3',
   'CRM-14.1', 'CRM-15.1', 'CRM-15.2', 'CRM-15.3',
   'CRM-8.1', 'CRM-8.2',
 ]);
