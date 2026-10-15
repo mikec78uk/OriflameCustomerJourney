@@ -450,6 +450,8 @@ const edges = [
 const SCREENSHOTS = new Set([
   ...Array.from({ length: 46 }, (_, i) => `P-${i + 1}`),
   'R-2', 'R-4', 'R-5', 'R-39', 'R-40', 'R-45',
+  'CRM-9.1', 'CRM-10.2', 'CRM-10.3', 'CRM-10.4', 'CRM-10.5', 'CRM-10.6', 'CRM-10.9', 'CRM-10.10',
+  'CRM-11.1', 'CRM-11.3', 'CRM-12.1', 'CRM-12.2', 'CRM-12.3', 'CRM-12.4',
 ]);
 
 finalize({ nodes, terminals, ghosts, decisions, groups, edges, screenshots: SCREENSHOTS });

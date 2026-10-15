@@ -64,7 +64,7 @@ const nodes = [
     description: `Campaign Support journey, Members & End-consuming BrPs – 1 day before campaign end (${CRM}). Expiry Wallet reminder if an amount expires, abandoned basket reminder if products are left in the basket, product articles/offers, personalised product recommendations.` }),
 
   // 7. Campaign Support – Leads
-  { ...step('7.1', 'Campaign opening (Leads version)', 0, C, { ...email(),
+  { ...step('7.1', 'Campaign opening (Leads version)', 0, C, { ...email(), screenshot: false, // CRM-7.1.jpg is the Members version
     description: `Campaign Support journey, Leads (newsletter subscribers) – Day 1 (${CRM}). Leads receive only the campaign opening email, without the Wallet status block and with a promotion of the Member concept and benefits.` }), id: 'crm-7-1-leads' },
 
   // 4. Beauty Rewards support
@@ -161,7 +161,15 @@ const edges = [
   e('crm-8-1', 'crm-8-2', { label: 'Additional channel' }),
 ];
 
-finalize({ nodes, terminals, decisions, edges });
+// Pages with a screenshot in assets/screens/, named by reference number.
+const SCREENSHOTS = new Set([
+  'CRM-6.1', 'CRM-6.3', 'CRM-6.5', 'CRM-6.6', 'CRM-6.7',
+  'CRM-7.1', 'CRM-7.3', 'CRM-7.5', 'CRM-7.6',
+  'CRM-14.1', 'CRM-15.1', 'CRM-15.2', 'CRM-15.3',
+  'CRM-8.1', 'CRM-8.2',
+]);
+
+finalize({ nodes, terminals, decisions, edges, screenshots: SCREENSHOTS });
 
 export const crm = {
   id: 'crm',

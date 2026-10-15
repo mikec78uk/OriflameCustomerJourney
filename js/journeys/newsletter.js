@@ -76,7 +76,7 @@ const edges = [
 ];
 
 // Screenshots in assets/screens/ (redacted web JPEGs), named by reference number.
-const SCREENSHOTS = new Set(['NL-1', 'NL-2', 'NL-3', 'NL-4.1', 'NL-4.2', 'NL-5', 'NL-6', 'NL-7', 'R-19', 'R-25', 'R-35']);
+const SCREENSHOTS = new Set(['NL-1', 'NL-2', 'NL-3', 'NL-4.1', 'NL-4.2', 'NL-5', 'NL-6', 'NL-7', 'NL-8', 'R-19', 'R-25', 'R-35']);
 
 finalize({ nodes, terminals, ghosts, edges, screenshots: SCREENSHOTS });
 
