@@ -5,10 +5,11 @@
 // Coordinates are the PDF artboard rendered at 13180 × 4602. Its boxes are 240 × 64, so the artboard is
 // stretched vertically (sy) to fit our cards while keeping every box centred on its source position.
 
+import { HIGHLIGHTS } from './highlights.js';
 import { artboard, finalize, FLOW_LEGEND } from './flow.js';
 
 const SY = 1.75;
-const { page, terminal, decision, ghostAt, frame, edge: e } = artboard({ ox: 0, oy: 0, sy: SY, pdfCardH: 64 });
+const { page, terminal, decision, ghostAt, frame, area, edge: e } = artboard({ ox: 0, oy: 0, sy: SY, pdfCardH: 64 });
 const CRM = 'CRM journeys overview (BCM markets) 2025';
 
 const POS = {}; // id → [cx, cy] in PDF coordinates, for elbow routing
@@ -470,6 +471,15 @@ export const purchase = {
   ghosts,
   decisions,
   groups,
+  // Areas from "Purchase.pdf" (journey-mapping highlights).
+  areas: [
+    // E is SHOP plus a strip along the top to All current offers (P-2), as in the source.
+    area('area-e', 'E', [[1090, 290, 5810, 4450], [5700, 290, 7300, 430], { ids: ['p-2'], pad: 60 }], { caption: 'Explore and browse products' }),
+    area('area-f', 'F', [{ ids: ['magazine', 'magazine-2', 'discover', 'magazine-n', 'materials'], pad: [40, 60, 60, 60] }], { caption: 'Inspiration', badge: { at: 'bl-out' } }),
+    area('area-g1', 'G1', [{ ids: ['f-example'], pad: 24 }], { caption: 'Basket', badge: { at: 'bl-out' } }),
+    area('area-g2', 'G2', [{ ids: ['f-checkout'], pad: 24 }], { caption: 'Checkout', badge: { at: 'bl-out' } }),
+  ],
+  summary: { highlights: HIGHLIGHTS.purchase },
   edges,
   legend: [
     ...FLOW_LEGEND.filter((i) => !['trigger', 'aud-m', 'aud-brp'].includes(i.kind)),

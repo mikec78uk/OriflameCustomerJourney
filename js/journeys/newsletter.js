@@ -3,9 +3,10 @@
 // Coordinates are PDF artboard pixels (rendered at 4626 × 938). R-19, R-25 and R-35 are the same pages
 // as in the Registration journey, so they keep their R- references and screenshots.
 
+import { HIGHLIGHTS } from './highlights.js';
 import { artboard, finalize, FLOW_LEGEND, SOURCE as source } from './flow.js';
 
-const { page, terminal, ghost, edge: e } = artboard({ ox: 80, oy: 60 });
+const { page, terminal, ghost, area, edge: e } = artboard({ ox: 80, oy: 60 });
 
 // The logged-in Member / Brand Partner routes moved right to make room for NL-7 and NL-8 (later updates).
 const S = 653;
@@ -92,6 +93,11 @@ export const newsletter = {
   ghosts,
   decisions: [],
   groups: [],
+  // Area D from "Newsletter.pdf": the whole flow after the entry point.
+  areas: [area('area-d', 'D', [{ ids: [...nodes.map((n) => n.id), ...ghosts.map((g) => g.id)], pad: [170, 60, 60, 60] }], {
+    caption: 'Newsletter sign-up, emails and My Account section', badge: { at: 'bl-out' },
+  })],
+  summary: { highlights: HIGHLIGHTS.newsletter },
   edges,
   legend: FLOW_LEGEND.filter((i) => !['trigger', 'push', 'decision'].includes(i.kind)).concat({ kind: 'ghost', label: 'Does not exist yet' }),
 };

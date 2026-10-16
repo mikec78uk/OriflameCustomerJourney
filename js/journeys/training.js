@@ -4,9 +4,10 @@
 // Coordinates are PDF artboard pixels (rendered at 4626 × 1818). R-2 and R-35 are the same pages as in the
 // Registration journey; R-35 uses a screenshot taken for this flow (R-35-training).
 
+import { HIGHLIGHTS } from './highlights.js';
 import { artboard, finalize, FLOW_LEGEND, SOURCE as source } from './flow.js';
 
-const { page, terminal, edge: e } = artboard({ ox: 80, oy: 40 });
+const { page, terminal, area, edge: e } = artboard({ ox: 80, oy: 40 });
 const BrP = { audience: 'BrP' };
 
 const nodes = [
@@ -97,6 +98,9 @@ export const training = {
   terminals,
   decisions: [],
   groups: [],
+  // Area C from "Brand Partner Onboarding.pdf": the whole flow after sign-in.
+  areas: [area('area-c', 'C', [{ ids: nodes.map((n) => n.id), pad: [120, 70, 120, 70] }], { caption: 'Brand Partner onboarding' })],
+  summary: { highlights: HIGHLIGHTS.training },
   edges,
   legend: FLOW_LEGEND.filter((i) => !['trigger', 'email', 'push', 'decision', 'aud-m', 'delay'].includes(i.kind)),
 };

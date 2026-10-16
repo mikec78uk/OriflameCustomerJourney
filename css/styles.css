@@ -432,6 +432,11 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
 
 .hl-item__bullets { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; line-height: 1.45; color: var(--ori-text-secondary); }
 .hl-item__text + .hl-item__bullets { margin-top: 8px; }
+.hl-item__text + .hl-item__text, .hl-item__bullets + .hl-item__text { margin-top: 10px; }
+.hl-item__scope { margin: 0 0 10px; font-size: 12px; line-height: 1.45; color: var(--ori-text-secondary); }
+.hl-item__scope span { display: block; margin-bottom: 2px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--area-ink); }
+.hl-item--area::before { display: none; }
+.hl-item > .area-letter { width: 32px; height: 32px; font-size: 14px; }
 .hl-item { transition: border-color .3s, box-shadow .3s; }
 .hl-item.is-focus { border-color: var(--area-ink); box-shadow: 0 0 0 3px var(--area-fill); }
 .hl-area {
@@ -453,6 +458,7 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
   padding: 10px 28px 10px 10px; border: 0; border-radius: 999px; background: var(--ori-white); box-shadow: var(--ori-shadow-4);
   font: inherit; text-align: left; cursor: pointer; transition: box-shadow .2s;
 }
+.area-badge--bl-out, .area-badge--xy { transform: none; }
 .area-badge:hover { box-shadow: 0 0 0 3px var(--area-fill-strong), var(--ori-shadow-4); }
 .area-badge__text { display: grid; gap: 4px; font-size: 22px; line-height: 1.25; font-weight: 600; color: var(--ori-default-dark); }
 .area-badge__eyebrow { font-size: 14px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--area-ink); }

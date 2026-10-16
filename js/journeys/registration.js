@@ -6,6 +6,7 @@
 // The end of the flow (welcome emails broken out + CRM email sequence) follows a later update
 // to the source, placed on the same grid.
 
+import { HIGHLIGHTS } from './highlights.js';
 import { artboard, finalize, FLOW_LEGEND, NOT_UK_LEGEND, SOURCE as source } from './flow.js';
 
 // oy shifts the PDF artboard down 600px to make room for the BCM 6.0 swimlane at the top of the canvas.
@@ -298,6 +299,9 @@ const SCREENSHOTS = new Set(Array.from({ length: 50 }, (_, i) => `R-${i + 1}`));
 
 finalize({ nodes, terminals, triggers, decisions, edges, screenshots: SCREENSHOTS, describeTerminal: { 'end-brp': 'Becomes a Brand Partner (BrP)' } });
 
+// Step ids r-a … r-b, for highlight areas.
+const REFS = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => `r-${a + i}`);
+
 export const registration = {
   id: 'registration',
   name: 'Registration',
@@ -312,40 +316,26 @@ export const registration = {
   decisions,
   groups: [...lanes, ...banners],
   areas: [
-    // Area A from "Oriflame Journey Mapping WIP": the ways in plus both verification/form routes (R-3 … R-16, R-27 … R-32).
-    area('area-a', 'A', [[1234, 429, 2682, 1799], [2500, 429, 4790, 1112]], { caption: 'Business-model decision before a reason to buy' }),
+    // Areas from "Registration.pdf" (journey-mapping highlights), drawn around the steps they cover.
+    // A2 and B sit side by side, so they use a smaller pad to keep a visible gap between them.
+    area('area-a1', 'A1', [{ ids: [...REFS(3, 10), 'ui-discover-signup', 'ui-signup-button', 'ui-account-icon', 'ui-discover-business'], pad: 56 }], {
+      caption: 'Home to the first registration form', badge: { at: 'bl-out' },
+    }),
+    area('area-a2', 'A2', [
+      { ids: [...REFS(27, 33), ...REFS(11, 16)], pad: 18 },
+      { ids: ['r-34'], pad: 18 },
+      { ids: ['r-17'], pad: 18 },
+    ], { caption: 'Email verification to the first view of My Account', badge: { at: 'tl-out' } }),
+    area('area-b', 'B', [
+      { ids: ['r-35', 'r-36', 'r-37', 'r-38'], pad: 18 },
+      { ids: ['r-18', 'r-19', 'r-20', 'r-23', 'r-24'], pad: 18 },
+      { ids: ['r-25', 'r-26'], pad: 18 },
+      { ids: ['r-21', 'r-22', 'upgraded', 'end-brp'], pad: 18 },
+    ], { caption: 'My Account & Dashboard', badge: { at: [5318, 1890] } }),
   ],
   summary: {
     intro: 'We mapped and expert-reviewed Oriflame UK’s as-is sign-up, sign-in and registration journeys: the Member (VIP) and Brand Partner routes, from first visit to first dashboard, alongside the incoming BCM 6.0 flow. These findings haven’t yet been tested with users or checked against current funnel data.',
-    highlights: [
-      {
-        title: 'Registration asks people to make a business-model decision before they have a reason to buy',
-        area: 'A',
-        bullets: [
-          'Visitors encounter several near-identical ways in and eight different names for three roles.',
-          'They must be linked to a seller they can’t choose or decline, and sometimes can’t contact.',
-          'Verification and form steps add effort before any value.',
-          'The first session can bring loading errors and a hard-to-find welcome discount.',
-        ],
-      },
-      {
-        title: 'BCM 6.0 simplifies the form, but leaves wider friction',
-        text: 'BCM 6.0 is due in test markets from 21 October. It replaces the two routes with one form and fewer fields.',
-        bullets: [
-          'Seller assignment remains unchanged. Removing guest checkout extends assignment to every buyer.',
-          'New friction is introduced: phone-only registration, terms accepted twice, and a sign-up button below the fold on mobile.',
-          'Registration moves inside checkout, so registration friction becomes checkout friction.',
-        ],
-      },
-      {
-        title: 'Mobile needs particular attention',
-        text: 'Oriflame says most of its revenue comes from mobile, and several of these issues only appear there.',
-      },
-      {
-        title: 'Current funnel data is needed',
-        text: 'Stakeholders recall an earlier review (spring 2026) showing about 86% registration abandonment, mostly at the first step. We haven’t seen the underlying data, and the flow has changed since. We’re requesting current GA funnel data to confirm or replace that figure.',
-      },
-    ],
+    highlights: HIGHLIGHTS.registration,
   },
   edges,
   legend: [...FLOW_LEGEND, NOT_UK_LEGEND],

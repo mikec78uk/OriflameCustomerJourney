@@ -303,28 +303,45 @@ function renderAreas(journey) {
   const { width, height } = journey;
   const layer = svg('svg', { class: 'areas', width, height, viewBox: `0 0 ${width} ${height}` });
   areas.forEach((a) => {
+    const boxes = areaBoxes(journey, a);
     // Rects share one group opacity so overlapping boxes read as a single shape.
     const g = svg('g', { class: 'area', 'data-area': a.letter });
-    a.boxes.forEach((b) => g.appendChild(svg('rect', { x: b.x, y: b.y, width: b.w, height: b.h, rx: 44 })));
+    boxes.forEach((b) => g.appendChild(svg('rect', { x: b.x, y: b.y, width: b.w, height: b.h, rx: 44 })));
     layer.appendChild(g);
-    const b = a.boxes[a.labelBox ?? 0];
-    const badge = el('button', 'area-badge', `<span class="area-letter">${escapeHtml(a.letter)}</span>
+    const at = a.badge?.at || 'bl';
+    const b = boxes[a.badge?.box ?? 0];
+    const badge = el('button', `area-badge area-badge--${Array.isArray(at) ? 'xy' : at}`, `<span class="area-letter">${escapeHtml(a.letter)}</span>
       <span class="area-badge__text"><span class="area-badge__eyebrow">Highlight area ${escapeHtml(a.letter)}</span>${escapeHtml(a.caption || '')}</span>`);
     badge.type = 'button';
     badge.dataset.area = a.letter;
-    Object.assign(badge.style, { left: `${b.x + 32}px`, top: `${b.y + b.h - 32}px` });
+    const pos = Array.isArray(at) ? at : { bl: [b.x + 32, b.y + b.h - 32], 'tl-out': [b.x, b.y - 20], 'bl-out': [b.x, b.y + b.h + 20] }[at];
+    Object.assign(badge.style, { left: `${pos[0]}px`, top: `${pos[1]}px` });
     badge.addEventListener('click', (ev) => { ev.stopPropagation(); openHighlight(a.letter); });
     dom.world.appendChild(badge);
   });
   dom.world.appendChild(layer);
 }
 
+function bounds(boxes) {
+  const minX = Math.min(...boxes.map((b) => b.x));
+  const minY = Math.min(...boxes.map((b) => b.y));
+  return { x: minX, y: minY, w: Math.max(...boxes.map((b) => b.x + b.w)) - minX, h: Math.max(...boxes.map((b) => b.y + b.h)) - minY };
+}
+
+// Area boxes on the canvas: `{ ids, pad }` boxes become the padded bounds of those elements.
+function areaBoxes(journey, a) {
+  return a.boxes.map((b) => {
+    if (!b.ids) return b;
+    const r = bounds(b.ids.map((id) => boxOf(journey, id)));
+    // `pad` is one number or [top, right, bottom, left], like CSS padding.
+    const [t, rt, bt, l] = Array.isArray(b.pad) ? b.pad : Array(4).fill(b.pad ?? 48);
+    return { x: r.x - l, y: r.y - t, w: r.w + l + rt, h: r.h + t + bt };
+  });
+}
+
 function areaBounds(letter) {
   const a = listOf(state.journey, 'areas').find((x) => x.letter === letter);
-  if (!a) return null;
-  const minX = Math.min(...a.boxes.map((b) => b.x));
-  const minY = Math.min(...a.boxes.map((b) => b.y));
-  return { x: minX, y: minY, w: Math.max(...a.boxes.map((b) => b.x + b.w)) - minX, h: Math.max(...a.boxes.map((b) => b.y + b.h)) - minY };
+  return a ? bounds(areaBoxes(state.journey, a)) : null;
 }
 
 function showArea(letter) {
@@ -357,8 +374,6 @@ function buildCanvas(journey) {
   dom.world.style.width = `${width}px`;
   dom.world.style.height = `${height}px`;
 
-  renderAreas(journey);
-
   listOf(journey, 'groups').forEach((g) => {
     // Banners are borderless labels (e.g. marking steps that aren't available in the UK).
     const n = g.variant
@@ -368,6 +383,9 @@ function buildCanvas(journey) {
     n.dataset.id = g.id;
     dom.world.appendChild(n);
   });
+
+  // Highlight areas sit above section frames (whose translucent fill would wash them out) and below the flow.
+  renderAreas(journey);
 
   const svgRoot = svg('svg', { class: 'edges', width, height, viewBox: `0 0 ${width} ${height}` });
   const defs = svg('defs');
@@ -1121,10 +1139,16 @@ function openHighlight(focusArea) {
   const items = j.summary?.highlights || PLACEHOLDER_SUMMARY.highlights;
   dom.hlJourney.textContent = j.name;
   dom.hlNote.textContent = j.summary?.intro || (j.summary?.highlights ? 'Key takeaways for this flow.' : 'Key takeaways for this flow – content to be confirmed.');
-  dom.hlList.innerHTML = items.map((h) => `<li class="hl-item"${h.area ? ` data-area="${escapeHtml(h.area)}"` : ''}><div>
+  // `body` mixes paragraphs (strings) and bullet lists (arrays); a leading "Still to confirm:" / "To review:" is set in bold.
+  const para = (t) => `<p class="hl-item__text">${escapeHtml(t).replace(/^(Still to confirm:|To review:)/, '<strong>$1</strong>')}</p>`;
+  const list = (l) => `<ul class="hl-item__bullets">${l.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>`;
+  dom.hlList.innerHTML = items.map((h) => `<li class="hl-item${h.area ? ' hl-item--area' : ''}"${h.area ? ` data-area="${escapeHtml(h.area)}"` : ''}>
+      ${h.area ? `<span class="area-letter" aria-hidden="true">${escapeHtml(h.area)}</span>` : ''}<div>
       <h3 class="hl-item__title">${escapeHtml(h.title)}</h3>
-      ${h.text ? `<p class="hl-item__text">${escapeHtml(h.text)}</p>` : ''}
-      ${h.bullets ? `<ul class="hl-item__bullets">${h.bullets.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>` : ''}
+      ${h.scope ? `<p class="hl-item__scope"><span>Scope</span>${escapeHtml(h.scope)}</p>` : ''}
+      ${h.text ? para(h.text) : ''}
+      ${h.bullets ? list(h.bullets) : ''}
+      ${(h.body || []).map((b) => (Array.isArray(b) ? list(b) : para(b))).join('')}
       ${h.area ? `<button class="hl-area" type="button" data-area="${escapeHtml(h.area)}"><span class="area-letter">${escapeHtml(h.area)}</span>Show area ${escapeHtml(h.area)} on the flow</button>` : ''}
     </div></li>`).join('');
   dom.hlList.querySelectorAll('.hl-area').forEach((b) => b.addEventListener('click', () => showArea(b.dataset.area)));

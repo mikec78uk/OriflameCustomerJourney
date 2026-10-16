@@ -100,9 +100,18 @@ export function artboard({ ox = 60, oy = 60, metrics = false, sy = 1, pdfCardH =
       return { id, label, caption, variant, x: cx - w / 2 - ox, y: cy * sy - h / 2 - oy, w, h };
     },
     // Lettered highlight area (shaded on the canvas, referenced from the Highlight panel), from one or more
-    // source corner boxes [x0, y0, x1, y1] that are merged into a single shape.
+    // boxes merged into a single shape. A box is either source corners [x0, y0, x1, y1] or
+    // { ids: [...], pad } – the bounds of those elements, resolved when the canvas is drawn (`pad`: one number
+    // or [top, right, bottom, left]).
+    // `badge: { box, at }` places the letter badge: at 'bl' (inside bottom-left, default), 'tl-out', 'bl-out'
+    // or [x, y] (canvas coordinates of the badge's top-left corner).
     area(id, letter, boxes, opts = {}) {
-      return { id, letter, ...opts, boxes: boxes.map(([x0, y0, x1, y1]) => ({ x: x0 - ox, y: y0 * sy - oy, w: x1 - x0, h: (y1 - y0) * sy })) };
+      return {
+        id, letter, ...opts,
+        boxes: boxes.map((b) => (Array.isArray(b)
+          ? { x: b[0] - ox, y: b[1] * sy - oy, w: b[2] - b[0], h: (b[3] - b[1]) * sy }
+          : b)),
+      };
     },
     // Section frame / swimlane from source corner coordinates.
     frame(id, label, x0, y0, x1, y1, opts = {}) {
