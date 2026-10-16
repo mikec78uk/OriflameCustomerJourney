@@ -104,7 +104,7 @@ export function artboard({ ox = 60, oy = 60, metrics = false, sy = 1, pdfCardH =
     // { ids: [...], pad } – the bounds of those elements, resolved when the canvas is drawn (`pad`: one number
     // or [top, right, bottom, left]).
     // `badge: { box, at }` places the letter badge: at 'bl' (inside bottom-left, default), 'tl-out', 'bl-out'
-    // or [x, y] (canvas coordinates of the badge's top-left corner).
+    // or [x, y] (canvas coordinates of the badge's top-left corner); `maxWidth` wraps a long caption.
     area(id, letter, boxes, opts = {}) {
       return {
         id, letter, ...opts,

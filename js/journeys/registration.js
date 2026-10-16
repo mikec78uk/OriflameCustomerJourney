@@ -320,19 +320,19 @@ export const registration = {
     // Areas from "Registration.pdf" (journey-mapping highlights), drawn around the steps they cover.
     // A2 and B sit side by side, so they use a smaller pad to keep a visible gap between them.
     area('area-a1', 'A1', [{ ids: [...REFS(3, 10), 'ui-discover-signup', 'ui-signup-button', 'ui-account-icon', 'ui-discover-business'], pad: 56 }], {
-      caption: 'Home to the first registration form', badge: { at: 'bl-out' },
+      caption: 'Getting to registration', badge: { at: 'bl-out' },
     }),
     area('area-a2', 'A2', [
       { ids: [...REFS(27, 33), ...REFS(11, 16)], pad: 18 },
       { ids: ['r-34'], pad: 18 },
       { ids: ['r-17'], pad: 18 },
-    ], { caption: 'Email verification to the first view of My Account', badge: { at: 'tl-out' } }),
+    ], { caption: 'Completing registration', badge: { at: 'tl-out' } }),
     area('area-b', 'B', [
       { ids: ['r-35', 'r-36', 'r-37', 'r-38'], pad: 18 },
       { ids: ['r-18', 'r-19', 'r-20', 'r-23', 'r-24'], pad: 18 },
       { ids: ['r-25', 'r-26'], pad: 18 },
       { ids: ['r-21', 'r-22', 'upgraded', 'end-brp'], pad: 18 },
-    ], { caption: 'My Account & Dashboard', badge: { at: [5318, 1890] } }),
+    ], { caption: 'My Account and dashboards', badge: { at: [5310, 1880], maxWidth: 400 } }),
   ],
   funnels: FUNNELS.registration, // GA4 funnels, shown in the summary bar
   summary: {

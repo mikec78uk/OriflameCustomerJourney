@@ -134,7 +134,7 @@ const nodes = [
 
   // INSPIRATION and ALL OFFERS
   N('magazine', 'Magazine', 6114, 532, 'Magazine section of INSPIRATION, leading to magazine articles and all materials.'),
-  N('magazine-2', 'Magazine', 6418, 532, 'Magazine entry in the INSPIRATION section.'),
+  N('magazine-2', 'Beauty Tools', 6418, 532, 'Beauty Tools entry in the INSPIRATION section, leading to digital beauty tools.'),
   N('discover', 'Discover', 6722, 531, 'Discover entry in the INSPIRATION section.'),
   N('magazine-n', 'Magazine (N)', 6114, 692, 'Magazine articles (one of many) in the INSPIRATION section.'),
   N('materials', 'See all materials', 6113, 852, 'Overview of all INSPIRATION materials.'),
@@ -475,8 +475,8 @@ export const purchase = {
   // Areas from "Purchase.pdf" (journey-mapping highlights).
   areas: [
     // E is SHOP plus a strip along the top to All current offers (P-2), as in the source.
-    area('area-e', 'E', [[1090, 290, 5810, 4450], [5700, 290, 7300, 430], { ids: ['p-2'], pad: 60 }], { caption: 'Explore and browse products' }),
-    area('area-f', 'F', [{ ids: ['magazine', 'magazine-2', 'discover', 'magazine-n', 'materials'], pad: [40, 60, 60, 60] }], { caption: 'Inspiration', badge: { at: 'bl-out' } }),
+    area('area-e', 'E', [[1090, 290, 5810, 4450], [5700, 290, 7300, 430], { ids: ['p-2'], pad: 60 }], { caption: 'Exploring and browsing products' }),
+    area('area-f', 'F', [{ ids: ['magazine', 'magazine-2', 'discover', 'magazine-n', 'materials'], pad: [40, 60, 60, 60] }], { caption: 'Inspiration, Magazine and beauty tools', badge: { at: 'bl-out' } }),
     area('area-g1', 'G1', [{ ids: ['f-example'], pad: 24 }], { caption: 'Basket', badge: { at: 'bl-out' } }),
     area('area-g2', 'G2', [{ ids: ['f-checkout'], pad: 24 }], { caption: 'Checkout', badge: { at: 'bl-out' } }),
   ],

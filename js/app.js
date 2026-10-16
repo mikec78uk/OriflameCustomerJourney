@@ -318,6 +318,7 @@ function renderAreas(journey) {
     badge.dataset.area = a.letter;
     const pos = Array.isArray(at) ? at : { bl: [b.x + 32, b.y + b.h - 32], 'tl-out': [b.x, b.y - 20], 'bl-out': [b.x, b.y + b.h + 20] }[at];
     Object.assign(badge.style, { left: `${pos[0]}px`, top: `${pos[1]}px` });
+    if (a.badge?.maxWidth) badge.style.maxWidth = `${a.badge.maxWidth}px`; // lets a long caption wrap in a tight spot
     badge.addEventListener('click', (ev) => { ev.stopPropagation(); openHighlight(a.letter); });
     dom.world.appendChild(badge);
   });
@@ -1173,41 +1174,70 @@ function focusPanelItem(selector) {
   setTimeout(() => target.classList.remove('is-focus'), 2400);
 }
 
+// Funnel: solid blocks for pages (height = users at that step) joined by lighter curved bands for the
+// transitions between them. Step results sit above, the users lost in each transition below its band.
 function funnelChart(f) {
   const t = funnelTotal(f);
   const n = f.steps.length;
-  const h = (u) => Math.max(4, (u / t.first) * 100); // bar height as % of the first step
-  const drops = f.steps.slice(0, -1).map(([, u], i) => u - f.steps[i + 1][1]);
-  const rates = drops.map((d, i) => d / f.steps[i][1]);
+  const GAP = 0.5; // transition width relative to a page block
+  const W = 1000, H = 120;
+  const sw = W / (n + GAP * (n - 1)), gw = sw * GAP;
+  const x0 = (i) => i * (sw + gw);
+  const hOf = (u) => Math.max(5, (u / t.first) * H);
+  const top = (i) => (H - hOf(f.steps[i][1])) / 2;
+  const lost = f.steps.slice(0, -1).map(([, u], i) => u - f.steps[i + 1][1]);
+  const rates = lost.map((l, i) => l / f.steps[i][1]);
   const worst = rates.indexOf(Math.max(...rates));
-  // Grid: step, gap, step, gap … – step columns hold bars, gap columns hold the band of people who left.
-  const cols = f.steps.map(() => 'minmax(0, 1fr)').join(' minmax(44px, .7fr) ');
-  const cells = [];
-  f.steps.forEach(([name, users, opts = {}], i) => {
-    const c = i * 2 + 1;
-    const tip = `${name}: ${fmtCount(users)} users (${pct(users / t.first)} of those who started)`;
-    cells.push(`<p class="fn__name" style="grid-column:${c}"><span>${i + 1}</span>${escapeHtml(name)}${opts.combined ? '<b class="fstep__mark" title="Delivery, payment and order review are tracked as one step">*</b>' : ''}</p>`);
-    cells.push(`<div class="fn__plot" style="grid-column:${c}"><span class="fn__bar${opts.combined ? ' fn__bar--combined' : ''}" style="height:${h(users).toFixed(1)}%" title="${escapeHtml(tip)}"></span></div>`);
-    cells.push(`<p class="fn__val" style="grid-column:${c}"><strong>${fmtCount(users)}</strong><span>${i === 0 ? 'started' : `${pct(users / t.first)} of start`}</span></p>`);
-    if (i < n - 1) {
-      const a = h(users), b = h(f.steps[i + 1][1]);
-      const tipD = `${fmtCount(drops[i])} users (${pct(rates[i])}) left between “${f.steps[i][0]}” and “${f.steps[i + 1][0]}”`;
-      cells.push(`<div class="fn__plot fn__plot--gap" style="grid-column:${c + 1}" title="${escapeHtml(tipD)}"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <polygon class="fn__band${i === worst ? ' is-worst' : ''}" points="0,${50 - a / 2} 100,${50 - b / 2} 100,${50 + b / 2} 0,${50 + a / 2}"/></svg></div>`);
-      cells.push(`<p class="fn__drop${i === worst ? ' is-worst' : ''}" style="grid-column:${c + 1}">−${fmtCount(drops[i])}<span>${pct(rates[i])} left</span>${i === worst ? '<em>Biggest drop</em>' : ''}</p>`);
-    }
-  });
-  return `<div class="fn" style="grid-template-columns:${cols}" role="img" aria-label="${escapeHtml(`${f.name} funnel: ${f.steps.map(([nm, u]) => `${nm} ${fmtCount(u)}`).join(', ')}`)}">${cells.join('')}</div>`;
+  const id = `fn-${f.id}`;
+  const blocks = f.steps.map(([, , o = {}], i) => {
+    const r = `x="${x0(i)}" y="${top(i)}" width="${sw}" height="${hOf(f.steps[i][1])}"`;
+    return `<rect class="fn__page" ${r} rx="3"/>${o.combined ? `<rect ${r} rx="3" fill="url(#${id}-hatch)"/>` : ''}`;
+  }).join('');
+  const bands = lost.map((_, i) => {
+    const a = x0(i) + sw, b = x0(i + 1), m = (a + b) / 2;
+    const t1 = top(i), t2 = top(i + 1);
+    return `<path class="fn__band${i === worst ? ' is-worst' : ''}" d="M${a},${t1} C${m},${t1} ${m},${t2} ${b},${t2} L${b},${H - t2} C${m},${H - t2} ${m},${H - t1} ${a},${H - t1} Z"/>`;
+  }).join('');
+  const cols = f.steps.map(() => '1fr').join(` ${GAP}fr `);
+  // "If 100 people start": a 10 × 10 grid of people per page – coloured = still here, faded = dropped out.
+  const per100 = (u) => Math.round((u / t.first) * 100);
+  const crowd = (k) => Array.from({ length: 100 }, (_, p) => `<use href="#fn-person" x="${(p % 10) * 10}" y="${Math.floor(p / 10) * 11}" width="10" height="11" class="${p < k ? 'is-in' : 'is-out'}"/>`).join('');
+  return `<div class="fn">
+    <div class="fn__cols" style="grid-template-columns:${cols}">${f.steps.map(([name, users, o = {}], i) => `<div class="fn__col" style="grid-column:${i * 2 + 1}" title="${escapeHtml(`${name}: ${fmtCount(users)} users, ${pct(users / t.first)} of those who started`)}">
+      <p class="fn__step"><span class="fn__num">${i + 1}</span>${escapeHtml(name)}${o.combined ? '<b class="fstep__mark" title="Delivery, payment and order review are tracked as one step">*</b>' : ''}</p>
+      <p class="fn__users">${fmtCount(users)}</p>
+      <p class="fn__share">${i === 0 ? 'started' : `${pct(users / t.first)} of start`}</p>
+    </div>`).join('')}</div>
+    <svg class="fn__shape" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${escapeHtml(`${f.name} funnel: ${f.steps.map(([nm, u]) => `${nm} ${fmtCount(u)}`).join(', ')}`)}">
+      <defs><pattern id="${id}-hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="10" class="fn__hatch"/></pattern></defs>
+      ${bands}${blocks}
+    </svg>
+    <div class="fn__losses">${lost.map((l, i) => `<span class="fn__loss${i === worst ? ' is-worst' : ''}" style="left:${(((x0(i) + sw + gw / 2) / W) * 100).toFixed(3)}%" title="${escapeHtml(`${fmtCount(l)} users (${pct(rates[i])}) left between “${f.steps[i][0]}” and “${f.steps[i + 1][0]}”`)}">
+      <span class="fn__loss-n">−${fmtCount(l)}</span><span class="fn__loss-r">${pct(rates[i])} left</span>
+    </span>`).join('')}</div>
+    <p class="fn__people-title">If 100 people start…</p>
+    <div class="fn__people" style="grid-template-columns:${cols}">${f.steps.map(([name, users], i) => {
+      const k = per100(users);
+      const label = k < 1 ? 'fewer than 1' : `${k}`;
+      return `<div class="fn__crowd" style="grid-column:${i * 2 + 1}">
+        <svg viewBox="0 0 100 110" role="img" aria-label="${escapeHtml(`${label} of 100 people reach ${name}`)}">${crowd(k)}</svg>
+        <p><strong>${k < 1 ? '<1' : k}</strong> of 100</p>
+      </div>${i < n - 1 ? `<p class="fn__leave${i === worst ? ' is-worst' : ''}" style="grid-column:${i * 2 + 2}">${k - per100(f.steps[i + 1][1])}<span>leave</span></p>` : ''}`;
+    }).join('')}</div>
+  </div>`;
 }
 
 function openFunnels(focusId, trigger) {
   const j = state.journey;
   if (!j?.funnels) return;
+  if (!document.getElementById('fn-person')) {
+    document.body.insertAdjacentHTML('beforeend', '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="fn-person" viewBox="0 0 10 11"><circle cx="5" cy="2.9" r="2.3"/><path d="M1.3 10.6a3.7 3.7 0 0 1 7.4 0z"/></symbol></svg>');
+  }
   stopTour();
   if (state.flyoutOpen) closeFlyout(false);
   dom.hlJourney.textContent = j.name;
   dom.hlTitle.textContent = 'Funnels';
-  dom.hlNote.textContent = `${FUNNEL_PERIOD.source} · ${FUNNEL_PERIOD.scope} · ${FUNNEL_PERIOD.dateRange}. Read each funnel left to right: bar height is the number of users who reached that step, and the band between two bars shows how many left before the next step.`;
+  dom.hlNote.textContent = `${FUNNEL_PERIOD.source} · ${FUNNEL_PERIOD.scope} · ${FUNNEL_PERIOD.dateRange}. Read each funnel left to right: each block is a page, its height the number of users who reached it; the lighter band is the transition to the next page, with the users lost underneath.`;
   // Caveats shared by several funnels are shown once, above them.
   const caveats = [...new Set(j.funnels.map((f) => f.caveat).filter(Boolean))];
   dom.hlList.innerHTML = caveats.map((c) => `<li class="funnel__caveat"><span aria-hidden="true">⚠</span> ${escapeHtml(c)}</li>`).join('') + j.funnels.map((f) => {
@@ -1217,11 +1247,18 @@ function openFunnels(focusId, trigger) {
     return `<li class="funnel" data-funnel="${escapeHtml(f.id)}">
       <h3 class="hl-item__title">${escapeHtml(f.name)}</h3>
       <p class="funnel__total"><strong>${pct(t.rate)}</strong> made it all the way: of ${fmtCount(t.first)} users who reached “${escapeHtml(first)}”, ${fmtCount(t.last)} reached “${escapeHtml(last)}”.</p>
+      <p class="funnel__plain">In plain terms: of every 100 people who reach “${escapeHtml(first)}”, about ${Math.round(t.rate * 100) < 1 ? 'less than 1' : Math.round(t.rate * 100)} reach “${escapeHtml(last)}”.</p>
       <div class="fn-scroll">${funnelChart(f)}</div>
+      <p class="fn__key"><span class="fn__key-page"></span>Page (users who reached it)<span class="fn__key-band"></span>Transition to the next page<span class="fn__key-loss is-worst"></span>Biggest drop-off</p>
     </li>`;
   }).join('');
   showPanel('funnels', trigger || dom.highlightBtn);
-  if (!reduceMotion) gsap.from(dom.hlList.querySelectorAll('.fn__bar, .fn__plot--gap svg'), { scaleY: 0, duration: 0.7, stagger: 0.04, delay: 0.35, ease: 'power3.out' });
+  if (!reduceMotion) {
+    gsap.from(dom.hlList.querySelectorAll('.fn__page'), { scaleY: 0, transformOrigin: '50% 50%', transformBox: 'fill-box', duration: 0.6, stagger: 0.04, delay: 0.3, ease: 'power3.out' });
+    gsap.from(dom.hlList.querySelectorAll('.fn__band'), { opacity: 0, duration: 0.5, stagger: 0.04, delay: 0.6 });
+    gsap.from(dom.hlList.querySelectorAll('.fn__loss'), { opacity: 0, y: -6, duration: 0.4, stagger: 0.04, delay: 0.9, clearProps: 'opacity,transform' });
+    gsap.from(dom.hlList.querySelectorAll('.fn__crowd'), { opacity: 0, y: 8, duration: 0.5, stagger: 0.06, delay: 1.1, clearProps: 'opacity,transform' });
+  }
   focusPanelItem(focusId && `.funnel[data-funnel="${focusId}"]`);
 }
 
@@ -1234,9 +1271,10 @@ function openHighlight(focusArea) {
   const items = j.summary?.highlights || PLACEHOLDER_SUMMARY.highlights;
   dom.hlJourney.textContent = j.name;
   dom.hlNote.textContent = j.summary?.intro || (j.summary?.highlights ? 'Key takeaways for this flow.' : 'Key takeaways for this flow – content to be confirmed.');
-  // `body` mixes paragraphs (strings) and bullet lists (arrays); a leading "Still to confirm:" / "To review:" is set in bold.
-  const para = (t) => `<p class="hl-item__text">${escapeHtml(t).replace(/^(Still to confirm:|To review:)/, '<strong>$1</strong>')}</p>`;
-  const list = (l) => `<ul class="hl-item__bullets">${l.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>`;
+  // `body` mixes paragraphs (strings) and bullet lists (arrays). Paragraph labels ("BCM 6.0:", "Still to confirm:" …)
+  // and short bullet lead-ins ("Failed payments:") are set in bold.
+  const para = (t) => `<p class="hl-item__text">${escapeHtml(t).replace(/^(BCM 6\.0:|Background only:|Still to confirm:|To review:)/, '<strong>$1</strong>')}</p>`;
+  const list = (l) => `<ul class="hl-item__bullets">${l.map((t) => `<li>${escapeHtml(t).replace(/^([^.:]{3,28}:)/, '<strong>$1</strong>')}</li>`).join('')}</ul>`;
   dom.hlList.innerHTML = items.map((h) => `<li class="hl-item${h.area ? ' hl-item--area' : ''}"${h.area ? ` data-area="${escapeHtml(h.area)}"` : ''}>
       ${h.area ? `<span class="area-letter" aria-hidden="true">${escapeHtml(h.area)}</span>` : ''}<div>
       <h3 class="hl-item__title">${escapeHtml(h.title)}</h3>

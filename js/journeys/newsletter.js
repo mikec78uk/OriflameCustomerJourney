@@ -95,7 +95,7 @@ export const newsletter = {
   groups: [],
   // Area D from "Newsletter.pdf": the whole flow after the entry point.
   areas: [area('area-d', 'D', [{ ids: [...nodes.map((n) => n.id), ...ghosts.map((g) => g.id)], pad: [170, 60, 60, 60] }], {
-    caption: 'Newsletter sign-up, emails and My Account section', badge: { at: 'bl-out' },
+    caption: 'Newsletter', badge: { at: 'bl-out' },
   })],
   summary: { highlights: HIGHLIGHTS.newsletter },
   edges,
