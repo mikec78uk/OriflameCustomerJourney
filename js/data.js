@@ -9,7 +9,7 @@ import { crm } from './journeys/crm.js';
 export const meta = {
   title: 'User Journey Flows',
   source: 'Google Analytics',
-  dateRange: '21 Aug 2026 – 15 Sep 2026', // GA4 funnels (js/journeys/funnels.js)
+  dateRange: '21 Aug 2026 – 15 Oct 2026', // GA4 funnels (js/journeys/funnels.js)
   market: { code: 'UK', name: 'United Kingdom' },
 };
 

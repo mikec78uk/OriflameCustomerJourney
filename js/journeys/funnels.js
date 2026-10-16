@@ -6,7 +6,7 @@
 export const FUNNEL_PERIOD = {
   source: 'GA4 funnel exploration',
   scope: 'UK, web',
-  dateRange: '21 Aug 2026 – 15 Sep 2026',
+  dateRange: '21 Aug 2026 – 15 Oct 2026',
 };
 
 // Purchase funnels track delivery, payment and order review as a single step.

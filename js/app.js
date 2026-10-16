@@ -1115,9 +1115,8 @@ dom.scrim.addEventListener('click', () => (state.highlightOpen ? closeHighlight(
 /* Journey summary bar + Highlight panel                               */
 /* ------------------------------------------------------------------ */
 
-// Placeholders until each journey's key metrics and takeaways are supplied via `journey.summary`.
+// Placeholder takeaways until a journey's highlights are supplied via `journey.summary`.
 const PLACEHOLDER_SUMMARY = {
-  metrics: [1, 2, 3, 4].map((i) => ({ label: `Key metric ${i}`, value: 'TBD' })),
   highlights: [1, 2, 3].map((i) => ({ title: `Key takeaway ${i}`, text: 'TBD' })),
 };
 
@@ -1132,12 +1131,13 @@ function renderSummary(journey) {
       const t = funnelTotal(f);
       return `<button class="metric metric--funnel" type="button" data-funnel="${escapeHtml(f.id)}" aria-haspopup="dialog" title="${escapeHtml(f.name)}: ${pct(t.rate)} of users reach the last step. Open the funnel">
         <span class="metric__label">${escapeHtml(f.short || f.name)}</span>
-        <span class="metric__value">${pct(t.rate)}<span class="metric__sub">${fmtCount(t.first)} → ${fmtCount(t.last)} users</span></span>
+        <span class="metric__value">${pct(t.rate)}<span class="metric__sub">completed · ${fmtCount(t.last)} of ${fmtCount(t.first)}</span></span>
       </button>`;
     }).join('');
     dom.summaryMetrics.querySelectorAll('[data-funnel]').forEach((b) => b.addEventListener('click', () => openFunnels(b.dataset.funnel, b)));
   } else {
-    const metrics = journey.summary?.metrics || PLACEHOLDER_SUMMARY.metrics;
+    // No placeholder tiles: journeys without metrics or funnels show only the Highlight button.
+    const metrics = journey.summary?.metrics || [];
     dom.summaryMetrics.innerHTML = metrics.map((m) => `<div class="metric">
       <span class="metric__label">${escapeHtml(m.label)}</span>
       <span class="metric__value${m.value === 'TBD' ? ' is-tbd' : ''}">${escapeHtml(m.value)}</span>
@@ -1173,6 +1173,33 @@ function focusPanelItem(selector) {
   setTimeout(() => target.classList.remove('is-focus'), 2400);
 }
 
+function funnelChart(f) {
+  const t = funnelTotal(f);
+  const n = f.steps.length;
+  const h = (u) => Math.max(4, (u / t.first) * 100); // bar height as % of the first step
+  const drops = f.steps.slice(0, -1).map(([, u], i) => u - f.steps[i + 1][1]);
+  const rates = drops.map((d, i) => d / f.steps[i][1]);
+  const worst = rates.indexOf(Math.max(...rates));
+  // Grid: step, gap, step, gap … – step columns hold bars, gap columns hold the band of people who left.
+  const cols = f.steps.map(() => 'minmax(0, 1fr)').join(' minmax(44px, .7fr) ');
+  const cells = [];
+  f.steps.forEach(([name, users, opts = {}], i) => {
+    const c = i * 2 + 1;
+    const tip = `${name}: ${fmtCount(users)} users (${pct(users / t.first)} of those who started)`;
+    cells.push(`<p class="fn__name" style="grid-column:${c}"><span>${i + 1}</span>${escapeHtml(name)}${opts.combined ? '<b class="fstep__mark" title="Delivery, payment and order review are tracked as one step">*</b>' : ''}</p>`);
+    cells.push(`<div class="fn__plot" style="grid-column:${c}"><span class="fn__bar${opts.combined ? ' fn__bar--combined' : ''}" style="height:${h(users).toFixed(1)}%" title="${escapeHtml(tip)}"></span></div>`);
+    cells.push(`<p class="fn__val" style="grid-column:${c}"><strong>${fmtCount(users)}</strong><span>${i === 0 ? 'started' : `${pct(users / t.first)} of start`}</span></p>`);
+    if (i < n - 1) {
+      const a = h(users), b = h(f.steps[i + 1][1]);
+      const tipD = `${fmtCount(drops[i])} users (${pct(rates[i])}) left between “${f.steps[i][0]}” and “${f.steps[i + 1][0]}”`;
+      cells.push(`<div class="fn__plot fn__plot--gap" style="grid-column:${c + 1}" title="${escapeHtml(tipD)}"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <polygon class="fn__band${i === worst ? ' is-worst' : ''}" points="0,${50 - a / 2} 100,${50 - b / 2} 100,${50 + b / 2} 0,${50 + a / 2}"/></svg></div>`);
+      cells.push(`<p class="fn__drop${i === worst ? ' is-worst' : ''}" style="grid-column:${c + 1}">−${fmtCount(drops[i])}<span>${pct(rates[i])} left</span>${i === worst ? '<em>Biggest drop</em>' : ''}</p>`);
+    }
+  });
+  return `<div class="fn" style="grid-template-columns:${cols}" role="img" aria-label="${escapeHtml(`${f.name} funnel: ${f.steps.map(([nm, u]) => `${nm} ${fmtCount(u)}`).join(', ')}`)}">${cells.join('')}</div>`;
+}
+
 function openFunnels(focusId, trigger) {
   const j = state.journey;
   if (!j?.funnels) return;
@@ -1180,25 +1207,21 @@ function openFunnels(focusId, trigger) {
   if (state.flyoutOpen) closeFlyout(false);
   dom.hlJourney.textContent = j.name;
   dom.hlTitle.textContent = 'Funnels';
-  dom.hlNote.textContent = `${FUNNEL_PERIOD.source} · ${FUNNEL_PERIOD.scope} · ${FUNNEL_PERIOD.dateRange}. Each step shows the users who reached it; the drop-off is the share who didn’t reach the next step.`;
+  dom.hlNote.textContent = `${FUNNEL_PERIOD.source} · ${FUNNEL_PERIOD.scope} · ${FUNNEL_PERIOD.dateRange}. Read each funnel left to right: bar height is the number of users who reached that step, and the band between two bars shows how many left before the next step.`;
   // Caveats shared by several funnels are shown once, above them.
   const caveats = [...new Set(j.funnels.map((f) => f.caveat).filter(Boolean))];
   dom.hlList.innerHTML = caveats.map((c) => `<li class="funnel__caveat"><span aria-hidden="true">⚠</span> ${escapeHtml(c)}</li>`).join('') + j.funnels.map((f) => {
     const t = funnelTotal(f);
-    const drops = f.steps.slice(0, -1).map(([, u], i) => 1 - f.steps[i + 1][1] / u);
-    const worst = drops.indexOf(Math.max(...drops));
+    const [first] = f.steps[0];
+    const [last] = f.steps[f.steps.length - 1];
     return `<li class="funnel" data-funnel="${escapeHtml(f.id)}">
       <h3 class="hl-item__title">${escapeHtml(f.name)}</h3>
-      <p class="funnel__total"><strong>${pct(t.rate)}</strong> reach the last step · ${fmtCount(t.first)} → ${fmtCount(t.last)} users</p>
-      <ol class="funnel__steps">${f.steps.map(([name, users, opts = {}], i) => `<li class="fstep${opts.combined ? ' fstep--combined' : ''}">
-        <div class="fstep__row"><span class="fstep__name">${i + 1}. ${escapeHtml(name)}${opts.combined ? '<span class="fstep__mark" title="Tracked as one step">*</span>' : ''}</span><span class="fstep__users">${fmtCount(users)}</span></div>
-        <div class="fstep__bar"><span style="width:${((users / t.first) * 100).toFixed(1)}%"></span></div>
-        ${i < drops.length ? `<p class="fstep__drop${i === worst ? ' is-worst' : ''}">↓ ${pct(drops[i])} drop off (${fmtCount(users - f.steps[i + 1][1])})${i === worst ? ' <span class="fstep__tag">Biggest drop-off</span>' : ''}</p>` : ''}
-      </li>`).join('')}</ol>
+      <p class="funnel__total"><strong>${pct(t.rate)}</strong> made it all the way: of ${fmtCount(t.first)} users who reached “${escapeHtml(first)}”, ${fmtCount(t.last)} reached “${escapeHtml(last)}”.</p>
+      <div class="fn-scroll">${funnelChart(f)}</div>
     </li>`;
   }).join('');
   showPanel('funnels', trigger || dom.highlightBtn);
-  if (!reduceMotion) gsap.from(dom.hlList.querySelectorAll('.fstep__bar span'), { width: 0, duration: 0.7, stagger: 0.03, delay: 0.35, ease: 'power3.out' });
+  if (!reduceMotion) gsap.from(dom.hlList.querySelectorAll('.fn__bar, .fn__plot--gap svg'), { scaleY: 0, duration: 0.7, stagger: 0.04, delay: 0.35, ease: 'power3.out' });
   focusPanelItem(focusId && `.funnel[data-funnel="${focusId}"]`);
 }
 
