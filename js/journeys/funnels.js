@@ -1,10 +1,11 @@
-// GA4 funnel explorations from "Funnels_CX_Journeys.xlsx" (all markets roll-up, web), keyed by journey.
+// GA4 funnel explorations from "Funnels_CX_Journeys.xlsx" (UK, web – confirmed by the client, although the
+// export header reads "All markets roll-up"), keyed by journey.
 // Only active users per step are stored; completion and abandonment are derived from them
 // (they match the export). Update this file when a new export is supplied.
 
 export const FUNNEL_PERIOD = {
   source: 'GA4 funnel exploration',
-  scope: 'All markets roll-up, web',
+  scope: 'UK, web',
   dateRange: '21 Aug 2026 – 15 Sep 2026',
 };
 
