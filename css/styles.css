@@ -394,7 +394,7 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
   height: var(--summary-h); display: flex; align-items: center; justify-content: space-between; gap: 16px;
   padding: 0 37px; background: var(--ori-white); border-bottom: 1px solid var(--ori-grey-200); position: relative; z-index: 3;
 }
-.summary[hidden] { display: none; }
+.summary[hidden], .summary__btn[hidden] { display: none; }
 .summary__metrics { display: flex; gap: 10px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .summary__metrics::-webkit-scrollbar { display: none; }
 .metric {
@@ -618,3 +618,6 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0s !important; }
 }
+
+/* No summary bar for this journey: the canvas takes its height (after the media queries so it wins). */
+:root.no-summary { --summary-h: 0px; }

@@ -127,7 +127,7 @@ function selectJourney(id, { intro = true, openNode = null } = {}) {
   if (changed) {
     teardownCanvas();
     if (journey.status === 'coming-soon') {
-      dom.summary.hidden = true;
+      setSummaryVisible(false);
       showComingSoon(journey);
     } else {
       hideComingSoon();
@@ -313,7 +313,7 @@ function renderAreas(journey) {
     const at = a.badge?.at || 'bl';
     const b = boxes[a.badge?.box ?? 0];
     const badge = el('button', `area-badge area-badge--${Array.isArray(at) ? 'xy' : at}`, `<span class="area-letter">${escapeHtml(a.letter)}</span>
-      <span class="area-badge__text"><span class="area-badge__eyebrow">Highlight area ${escapeHtml(a.letter)}</span>${escapeHtml(a.caption || '')}</span>`);
+      <span class="area-badge__text"><span class="area-badge__eyebrow">Overview area ${escapeHtml(a.letter)}</span>${escapeHtml(a.caption || '')}</span>`);
     badge.type = 'button';
     badge.dataset.area = a.letter;
     const pos = Array.isArray(at) ? at : { bl: [b.x + 32, b.y + b.h - 32], 'tl-out': [b.x, b.y - 20], 'bl-out': [b.x, b.y + b.h + 20] }[at];
@@ -1116,16 +1116,21 @@ dom.scrim.addEventListener('click', () => (state.highlightOpen ? closeHighlight(
 /* Journey summary bar + Highlight panel                               */
 /* ------------------------------------------------------------------ */
 
-// Placeholder takeaways until a journey's highlights are supplied via `journey.summary`.
-const PLACEHOLDER_SUMMARY = {
-  highlights: [1, 2, 3].map((i) => ({ title: `Key takeaway ${i}`, text: 'TBD' })),
-};
-
 const pct = (v) => `${(v * 100).toFixed(1)}%`;
 const funnelTotal = (f) => ({ first: f.steps[0][1], last: f.steps[f.steps.length - 1][1], rate: f.steps[f.steps.length - 1][1] / f.steps[0][1] });
 
+// The summary bar shows only what a journey has: metric / funnel tiles and an Overview button (when it has
+// highlights). With neither, the bar is hidden and the canvas takes its height.
+function setSummaryVisible(visible) {
+  dom.summary.hidden = !visible;
+  document.documentElement.classList.toggle('no-summary', !visible);
+}
+
 function renderSummary(journey) {
-  dom.summary.hidden = false;
+  const hasOverview = Boolean(journey.summary?.highlights?.length);
+  const hasMetrics = Boolean(journey.funnels?.length || journey.summary?.metrics?.length);
+  dom.highlightBtn.hidden = !hasOverview;
+  setSummaryVisible(hasOverview || hasMetrics);
   if (journey.funnels?.length) {
     // Funnel journeys: one tile per GA4 funnel (overall conversion), each opening the Funnels panel.
     dom.summaryMetrics.innerHTML = journey.funnels.map((f) => {
@@ -1137,7 +1142,7 @@ function renderSummary(journey) {
     }).join('');
     dom.summaryMetrics.querySelectorAll('[data-funnel]').forEach((b) => b.addEventListener('click', () => openFunnels(b.dataset.funnel, b)));
   } else {
-    // No placeholder tiles: journeys without metrics or funnels show only the Highlight button.
+    // No placeholder tiles: journeys without metrics or funnels show only the Overview button.
     const metrics = journey.summary?.metrics || [];
     dom.summaryMetrics.innerHTML = metrics.map((m) => `<div class="metric">
       <span class="metric__label">${escapeHtml(m.label)}</span>
@@ -1267,10 +1272,11 @@ function openHighlight(focusArea) {
   if (!j) return;
   stopTour();
   if (state.flyoutOpen) closeFlyout(false);
-  dom.hlTitle.textContent = 'Highlight';
-  const items = j.summary?.highlights || PLACEHOLDER_SUMMARY.highlights;
+  const items = j.summary?.highlights;
+  if (!items?.length) return;
+  dom.hlTitle.textContent = 'Overview';
   dom.hlJourney.textContent = j.name;
-  dom.hlNote.textContent = j.summary?.intro || (j.summary?.highlights ? 'Key takeaways for this flow.' : 'Key takeaways for this flow – content to be confirmed.');
+  dom.hlNote.textContent = j.summary?.intro || 'Key takeaways for this flow.';
   // `body` mixes paragraphs (strings) and bullet lists (arrays). Paragraph labels ("BCM 6.0:", "Still to confirm:" …)
   // and short bullet lead-ins ("Failed payments:") are set in bold.
   const para = (t) => `<p class="hl-item__text">${escapeHtml(t).replace(/^(BCM 6\.0:|Background only:|Still to confirm:|To review:)/, '<strong>$1</strong>')}</p>`;
