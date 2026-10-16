@@ -1242,6 +1242,7 @@ function openFunnels(focusId, trigger) {
   if (state.flyoutOpen) closeFlyout(false);
   dom.hlJourney.textContent = j.name;
   dom.hlTitle.textContent = 'Funnels';
+  dom.hlNote.hidden = false;
   dom.hlNote.textContent = `${FUNNEL_PERIOD.source} · ${FUNNEL_PERIOD.scope} · ${FUNNEL_PERIOD.dateRange}. Read each funnel left to right: each block is a page, its height the number of users who reached it; the lighter band is the transition to the next page, with the users lost underneath.`;
   // Caveats shared by several funnels are shown once, above them.
   const caveats = [...new Set(j.funnels.map((f) => f.caveat).filter(Boolean))];
@@ -1276,7 +1277,9 @@ function openHighlight(focusArea) {
   if (!items?.length) return;
   dom.hlTitle.textContent = 'Overview';
   dom.hlJourney.textContent = j.name;
-  dom.hlNote.textContent = j.summary?.intro || 'Key takeaways for this flow.';
+  // The Overview has no intro line; the note is only used by the Funnels panel.
+  dom.hlNote.textContent = '';
+  dom.hlNote.hidden = true;
   // `body` mixes paragraphs (strings) and bullet lists (arrays). Paragraph labels ("BCM 6.0:", "Still to confirm:" …)
   // and short bullet lead-ins ("Failed payments:") are set in bold.
   const para = (t) => `<p class="hl-item__text">${escapeHtml(t).replace(/^(BCM 6\.0:|Background only:|Still to confirm:|To review:)/, '<strong>$1</strong>')}</p>`;

@@ -474,6 +474,8 @@ kbd { font: inherit; font-size: 0.95em; padding: 0 4px; border: 1px solid var(--
 .hl-panel__eyebrow { margin: 0 0 6px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ori-secondary-main); }
 .hl-panel__title { margin: 0 0 8px; font-size: 26px; font-weight: 700; color: var(--ori-default-dark); }
 .hl-panel__note { margin: 0 0 24px; font-size: 14px; line-height: 1.5; color: var(--ori-text-primary); }
+/* Overview has no note line: keep a clear gap between the title and the first item. */
+.hl-panel__note[hidden] + .hl-list { margin-top: 28px; }
 .hl-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; counter-reset: hl; }
 .hl-item {
   counter-increment: hl; display: grid; grid-template-columns: 32px 1fr; gap: 12px; align-items: start;

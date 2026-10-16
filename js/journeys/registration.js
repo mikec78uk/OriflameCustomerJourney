@@ -336,7 +336,6 @@ export const registration = {
   ],
   funnels: FUNNELS.registration, // GA4 funnels, shown in the summary bar
   summary: {
-    intro: 'We mapped and expert-reviewed Oriflame UK’s as-is sign-up, sign-in and registration journeys: the Member (VIP) and Brand Partner routes, from first visit to first dashboard, alongside the incoming BCM 6.0 flow. These findings haven’t yet been tested with users or checked against current funnel data.',
     highlights: HIGHLIGHTS.registration,
   },
   edges,
