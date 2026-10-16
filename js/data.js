@@ -22,6 +22,7 @@ export const journeys = [
     id: 'subscription',
     name: 'Subscription',
     status: 'coming-soon',
+    hidden: true, // hidden for now; remove to show the tab again
   },
   crm,
   {

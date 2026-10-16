@@ -132,7 +132,15 @@ export const DESCRIPTIONS = {
   'R-45':
     "Post-registration welcome page showing trending products, member benefits, personalised beauty and wellness tools, customer testimonials and an #OriflameOnMe community carousel, with Start Shopping and Explore links.",
   'R-46':
-    "Account dashboard reached at the end of the BCM 6.0 registration flow (screenshot to follow).",
+    "Buyer account dashboard reached at the end of the BCM 6.0 registration flow, with a profile-strength prompt, Connect and catalogue tiles, trending products, What’s new articles and a Share & Earn invite link and code.",
+  'R-47':
+    "Email sent when the first Brand Partner a buyer invited joins, explaining the Invite Bonus on their orders, the new Dashboard tools and the Business Addendum to the Brand Partner terms.",
+  'R-48':
+    "Email to the inviting Brand Partner when a new customer registers in their team, with five tips to give them a great start and the new Brand Partner’s number, name, phone, email and city.",
+  'R-49':
+    "Seller account dashboard with an invite-registered notice, Oriflame Wallet, credit and orders tiles, Business highlights (invite bonus rate, team earnings, active first line), Rewards for the current and previous period and Share & Earn.",
+  'R-50':
+    "Builder account dashboard with Oriflame Wallet, loyalty programme and credit tiles, orders, Business highlights (community bonus rate, team earnings, personal group CV), Rewards including the community bonus, and Share & Earn.",
   'R-35-training':
     "Brand Partner account dashboard showing onboarding progress, a ’Connect with leaders’ prompt, What’s New articles, Share & Earn invite tools, My Business title progress and earnings.",
   'whats-new-brp':

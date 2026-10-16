@@ -94,7 +94,15 @@ const nodes = [
   page(43, 'Almost there', 3846, BCM6_Y),
   page(44, 'Welcome to Oriflame!', 3846, BCM6_Y + 230, { type: 'email' }),
   page(45, 'Welcome to Oriflame!', 4510, BCM6_Y),
-  page(46, 'My Account (Dashboard)', 5112, BCM6_Y),
+  page(46, 'My Account – Buyer (Dashboard)', 5112, BCM6_Y),
+
+  // BCM 6.0 – My Account progression from Buyer to Seller to Builder, in its own swimlane to the right
+  // (starts again from R-46, as in the source; emails R-47 / R-48 sit under R-46).
+  page(46, 'My Account – Buyer (Dashboard)', 5640, BCM6_Y, { id: 'r-46-progression' }),
+  page(47, 'Buyer to seller intro', 5640, BCM6_Y + 230, { type: 'email' }),
+  page(48, 'New customer registered', 6060, BCM6_Y + 230, { type: 'email' }),
+  page(49, 'My Account – Seller (Dashboard)', 6650, BCM6_Y),
+  page(50, 'My Account – Builder (Dashboard)', 7640, BCM6_Y),
 
   // CRM Welcome journey after the welcome email (variants of the same email per audience).
   // Not available in the UK: shown faded and labelled (notUk).
@@ -169,6 +177,7 @@ const banners = [
 // Swimlane box around the BCM 6.0 flow (canvas coordinates).
 const lanes = [
   { id: 'lane-bcm6', label: 'BCM 6.0 · Alternative registration flow (new business model)', x: 1100, y: 40, w: 4330, h: 470 },
+  { id: 'lane-bcm6-progression', label: 'BCM 6.0 · My Account – from Buyer to Seller to Builder', x: 5490, y: 40, w: 2460, h: 470 },
 ];
 
 const decisions = [
@@ -204,6 +213,10 @@ const edges = [
   e('r-43', 'r-44', { fromSide: 'b', toSide: 't' }),
   e('r-43', 'r-45'),
   e('r-45', 'r-46'),
+  e('r-46-progression', 'r-49', { label: 'From Buyer to Seller' }),
+  e('r-49', 'r-50', { label: 'From Seller to Builder' }),
+  e('r-46-progression', 'r-47', { fromSide: 'b', toSide: 't' }),
+  e('r-46-progression', 'r-48', { fromSide: 'b', toSide: 't', via: [[5700, BCM6_Y + 190], [6180, BCM6_Y + 190]] }),
 
   // Entry points
   e('email-comms', 'r-2', { toSide: 't', via: [[1040, 157]] }),
@@ -281,7 +294,7 @@ const edges = [
 
 // Pages with a screenshot in assets/screens/, named by reference number (redacted web JPEGs).
 // CRM emails (E-n) have no screenshots yet.
-const SCREENSHOTS = new Set(Array.from({ length: 45 }, (_, i) => `R-${i + 1}`)); // R-46 to follow
+const SCREENSHOTS = new Set(Array.from({ length: 50 }, (_, i) => `R-${i + 1}`));
 
 finalize({ nodes, terminals, triggers, decisions, edges, screenshots: SCREENSHOTS, describeTerminal: { 'end-brp': 'Becomes a Brand Partner (BrP)' } });
 
@@ -290,7 +303,7 @@ export const registration = {
   name: 'Registration',
   status: 'ready',
   metrics: false, // hide visits, conversion and traffic sources/destinations until real data is available
-  width: 7000,
+  width: 8100,
   height: 3060,
   nodes,
   terminals,

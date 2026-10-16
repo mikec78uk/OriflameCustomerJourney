@@ -4,15 +4,15 @@ Interactive prototype for communicating Oriflame customer journeys. Each journey
 
 **Live:** https://mikec78uk.github.io/OriflameCustomerJourney/
 
-> **Registration** includes a **BCM 6.0** swimlane (R-39 … R-46) showing the alternative registration flow after the business model change, lined up under the current flow.
+> **Registration** includes a **BCM 6.0** swimlane (R-39 … R-46) showing the alternative registration flow after the business model change, lined up above the current flow, with a second lane (R-46 … R-50) for the My Account progression from Buyer to Seller to Builder.
 > **Registration**, **Newsletter** and **Brand Partner Training (Onboarding)** are final-deliverable content, transcribed from their user-flow PDFs. Anything not yet known is shown as **TBD**, and pages without a screenshot show only their details (no image placeholder).
 > CRM emails from *CRM journeys overview (BCM markets) 2025* are added to the flows they belong to; live journeys not triggered by site actions are on the **CRM journeys** tab.
 > **Purchase** is the full site map and checkout from *Oriflame Journey Mapping WIP.pdf* (SHOP, INSPIRATION, ALL OFFERS, shopping example, checkout as-is and BCM 6.0 checkout), with the abandoned basket, Share & Earn, NovAge+ and Wellosophy CRM journeys in their own lanes.
 
 ## Features
 
-- **Journeys:** Registration, Newsletter, Brand Partner Training (Onboarding), Purchase, Subscription (coming soon) and CRM journeys, switched by tabs (Revieve Beauty Tools is hidden for now)
-- **Reference numbers:** pages have references (R-1 … R-46, E-1 … E-6, NL-1 … NL-8, O-1 … O-15, P-1 … P-46, CRM-n.n) and an audience badge: **M** = Member, **BrP** = Brand Partner
+- **Journeys:** Registration, Newsletter, Brand Partner Training (Onboarding), Purchase and CRM journeys, switched by tabs (Subscription and Revieve Beauty Tools are hidden for now)
+- **Reference numbers:** pages have references (R-1 … R-50, E-1 … E-6, NL-1 … NL-8, O-1 … O-15, P-1 … P-46, CRM-n.n) and an audience badge: **M** = Member, **BrP** = Brand Partner
 - **User-flow key:** start/end points, steps, envelope-shaped email steps, phone-shaped push/SMS/WhatsApp steps, UML decisions, UI elements, direct connections and dashed *no direct connection* links with ⚠ findings
 - **Summary bar:** under the tabs, key metrics for the selected journey and a **Highlight** button that opens a panel of key takeaways. Content is supplied via `summary: { intro, metrics: [{ label, value }], highlights: [{ title, text, bullets, area }] }` on a journey (placeholders otherwise). A highlight with `area: 'A'` links to a lettered, shaded area on the canvas, defined with `area(id, letter, [[x0, y0, x1, y1], …], { caption })` in the journey's `areas`; the panel's button zooms to the area and the area's badge opens its highlight
 - **Canvas:** drag to pan, <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + scroll or pinch to zoom, zoom controls and fit-to-screen
