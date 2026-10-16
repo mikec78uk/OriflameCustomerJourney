@@ -2,7 +2,10 @@
 // Changes (…Change) are fractions vs the previous period (e.g. 1.142 = +114.2%); null = not available.
 // Update this file when a new export is supplied.
 
-export const STATS_PERIOD = { source: 'Google Analytics', comparison: 'vs previous period' };
+// Page-level GA data (users on cards, Key Behaviour in the flyout) is hidden for now; set to true to show it again.
+export const SHOW_STATS = false;
+
+export const STATS_PERIOD = { source: 'Google Analytics', dateRange: '30 Sep 2025 - 30 Sep 2026', comparison: 'vs previous period' };
 
 export const STATS = {
   'R-3': { users: 6612, usersChange: null, views: 7708, viewsChange: null, viewsPerSession: 1.01, viewsPerSessionChange: null, viewsPerUser: 1.19, viewsPerUserChange: null, engagementRate: 0.6058, engagementRateChange: null },

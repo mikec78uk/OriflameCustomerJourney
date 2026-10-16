@@ -7,6 +7,7 @@
 // to the source, placed on the same grid.
 
 import { HIGHLIGHTS } from './highlights.js';
+import { FUNNELS } from './funnels.js';
 import { artboard, finalize, FLOW_LEGEND, NOT_UK_LEGEND, SOURCE as source } from './flow.js';
 
 // oy shifts the PDF artboard down 600px to make room for the BCM 6.0 swimlane at the top of the canvas.
@@ -333,6 +334,7 @@ export const registration = {
       { ids: ['r-21', 'r-22', 'upgraded', 'end-brp'], pad: 18 },
     ], { caption: 'My Account & Dashboard', badge: { at: [5318, 1890] } }),
   ],
+  funnels: FUNNELS.registration, // GA4 funnels, shown in the summary bar
   summary: {
     intro: 'We mapped and expert-reviewed Oriflame UK’s as-is sign-up, sign-in and registration journeys: the Member (VIP) and Brand Partner routes, from first visit to first dashboard, alongside the incoming BCM 6.0 flow. These findings haven’t yet been tested with users or checked against current funnel data.',
     highlights: HIGHLIGHTS.registration,

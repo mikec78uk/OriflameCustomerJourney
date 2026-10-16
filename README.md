@@ -41,7 +41,9 @@ python3 -m http.server 5173
 
 ## Updating content
 
-**Google Analytics data:** page metrics live in `js/journeys/stats.js`, keyed by reference number (users, views, views per session/user, engagement rate, each with its change vs the previous period). Pages with data show a users headline on the card and a Key Behaviour section in the flyout. Replace the file's contents when a new export is supplied.
+**GA4 funnels:** step-by-step funnels live in `js/journeys/funnels.js` (users per step; completion and drop-off are derived), keyed by journey and passed as `funnels` on Registration and Purchase. Each funnel becomes a summary-bar tile (overall conversion) that opens the Funnels panel. Replace the file's contents when a new export is supplied, and update `FUNNEL_PERIOD` and `meta.dateRange` in `js/data.js`.
+
+**Google Analytics data:** page metrics live in `js/journeys/stats.js`, keyed by reference number (users, views, views per session/user, engagement rate, each with its change vs the previous period). Pages with data show a users headline on the card and a Key Behaviour section in the flyout; this is hidden for now (`SHOW_STATS = false` in the same file). Replace the file's contents when a new export is supplied.
 
 **Screenshots:** put full-size PNGs named by reference (e.g. `R-12.png`) in `assets/screens/` and run `scripts/optimise-screens.sh` to create 900px-wide JPEGs for the flyout. The original PNGs are git-ignored. Screenshots of signed-in pages and emails contain personal data (names, emails, phone numbers, account numbers, profile photos, sponsor details), so **redact the JPEGs before committing**. The published R-, NL- and O- JPEGs have already been redacted. List the references with screenshots in each journey's `SCREENSHOTS` set; a page can use a different image in one journey with `page(..., { screenshot: 'R-35-training' })`.
 

@@ -1,5 +1,6 @@
 import { meta, journeys } from './data.js';
 import { STATS_PERIOD } from './journeys/stats.js';
+import { FUNNEL_PERIOD } from './journeys/funnels.js';
 
 gsap.registerPlugin(MotionPathPlugin);
 
@@ -52,6 +53,7 @@ const dom = {
   hlClose: $('#hl-close'),
   hlJourney: $('#hl-journey'),
   hlNote: $('#hl-note'),
+  hlTitle: $('#hl-title'),
   hlList: $('#hl-list'),
 };
 
@@ -979,7 +981,7 @@ function renderDetail(node) {
     <p class="detail__desc">${escapeHtml(d.description)}</p>
     ${node.stats && state.journey.metrics === false ? `
     <section class="section"><h3 class="section__title">Key Behaviour</h3>
-      <p class="section__note">${escapeHtml(STATS_PERIOD.source)} · ${escapeHtml(meta.dateRange)} · change ${escapeHtml(STATS_PERIOD.comparison)}</p>
+      <p class="section__note">${escapeHtml(STATS_PERIOD.source)} · ${escapeHtml(STATS_PERIOD.dateRange)} · change ${escapeHtml(STATS_PERIOD.comparison)}</p>
       <ul class="stats stats--ga">${GA_ROWS.map(([label, key, fmt]) => `<li class="stat stat--ga"><span>${label}</span>
         <span class="stat__value" data-v="${node.stats[key] == null ? '–' : fmt(node.stats[key])}">${node.stats[key] == null ? '–' : fmt(node.stats[key])}</span>${changeBadge(node.stats[`${key}Change`])}</li>`).join('')}</ul>
     </section>` : ''}
@@ -1119,23 +1121,93 @@ const PLACEHOLDER_SUMMARY = {
   highlights: [1, 2, 3].map((i) => ({ title: `Key takeaway ${i}`, text: 'TBD' })),
 };
 
+const pct = (v) => `${(v * 100).toFixed(1)}%`;
+const funnelTotal = (f) => ({ first: f.steps[0][1], last: f.steps[f.steps.length - 1][1], rate: f.steps[f.steps.length - 1][1] / f.steps[0][1] });
+
 function renderSummary(journey) {
-  const metrics = journey.summary?.metrics || PLACEHOLDER_SUMMARY.metrics;
   dom.summary.hidden = false;
-  dom.summaryMetrics.innerHTML = metrics.map((m) => `<div class="metric">
+  if (journey.funnels?.length) {
+    // Funnel journeys: one tile per GA4 funnel (overall conversion), each opening the Funnels panel.
+    dom.summaryMetrics.innerHTML = journey.funnels.map((f) => {
+      const t = funnelTotal(f);
+      return `<button class="metric metric--funnel" type="button" data-funnel="${escapeHtml(f.id)}" aria-haspopup="dialog" title="${escapeHtml(f.name)}: ${pct(t.rate)} of users reach the last step. Open the funnel">
+        <span class="metric__label">${escapeHtml(f.short || f.name)}</span>
+        <span class="metric__value">${pct(t.rate)}<span class="metric__sub">${fmtCount(t.first)} → ${fmtCount(t.last)} users</span></span>
+      </button>`;
+    }).join('');
+    dom.summaryMetrics.querySelectorAll('[data-funnel]').forEach((b) => b.addEventListener('click', () => openFunnels(b.dataset.funnel, b)));
+  } else {
+    const metrics = journey.summary?.metrics || PLACEHOLDER_SUMMARY.metrics;
+    dom.summaryMetrics.innerHTML = metrics.map((m) => `<div class="metric">
       <span class="metric__label">${escapeHtml(m.label)}</span>
       <span class="metric__value${m.value === 'TBD' ? ' is-tbd' : ''}">${escapeHtml(m.value)}</span>
     </div>`).join('');
+  }
   if (!reduceMotion) gsap.from(dom.summaryMetrics.children, { opacity: 0, y: 6, duration: 0.4, stagger: 0.05, ease: 'power2.out', clearProps: 'opacity,transform' });
 }
 
 gsap.set(dom.hlPanel, { xPercent: 105 });
+
+// The side panel shows either the Highlight takeaways or the GA4 funnels; `returnFocus` gets focus on close.
+let panelReturnFocus = null;
+
+function showPanel(mode, returnFocus) {
+  panelReturnFocus = returnFocus;
+  dom.hlPanel.dataset.mode = mode;
+  state.highlightOpen = true;
+  dom.scrim.hidden = false;
+  dom.hlPanel.setAttribute('aria-hidden', 'false');
+  gsap.killTweensOf([dom.scrim, dom.hlPanel]);
+  gsap.set(dom.hlPanel, { visibility: 'visible' });
+  gsap.to(dom.scrim, { opacity: 1, duration: reduceMotion ? 0 : 0.35 });
+  gsap.to(dom.hlPanel, { xPercent: 0, duration: reduceMotion ? 0 : 0.55, ease: 'power4.out' });
+  if (!reduceMotion) gsap.from(dom.hlList.children, { opacity: 0, x: 18, duration: 0.45, stagger: 0.07, delay: 0.2, ease: 'power3.out', clearProps: 'opacity,transform' });
+  dom.hlClose.focus({ preventScroll: true });
+}
+
+function focusPanelItem(selector) {
+  const target = selector && dom.hlList.querySelector(selector);
+  if (!target) return;
+  target.scrollIntoView({ block: 'nearest' });
+  target.classList.add('is-focus');
+  setTimeout(() => target.classList.remove('is-focus'), 2400);
+}
+
+function openFunnels(focusId, trigger) {
+  const j = state.journey;
+  if (!j?.funnels) return;
+  stopTour();
+  if (state.flyoutOpen) closeFlyout(false);
+  dom.hlJourney.textContent = j.name;
+  dom.hlTitle.textContent = 'Funnels';
+  dom.hlNote.textContent = `${FUNNEL_PERIOD.source} · ${FUNNEL_PERIOD.scope} · ${FUNNEL_PERIOD.dateRange}. Each step shows the users who reached it; the drop-off is the share who didn’t reach the next step.`;
+  // Caveats shared by several funnels are shown once, above them.
+  const caveats = [...new Set(j.funnels.map((f) => f.caveat).filter(Boolean))];
+  dom.hlList.innerHTML = caveats.map((c) => `<li class="funnel__caveat"><span aria-hidden="true">⚠</span> ${escapeHtml(c)}</li>`).join('') + j.funnels.map((f) => {
+    const t = funnelTotal(f);
+    const drops = f.steps.slice(0, -1).map(([, u], i) => 1 - f.steps[i + 1][1] / u);
+    const worst = drops.indexOf(Math.max(...drops));
+    return `<li class="funnel" data-funnel="${escapeHtml(f.id)}">
+      <h3 class="hl-item__title">${escapeHtml(f.name)}</h3>
+      <p class="funnel__total"><strong>${pct(t.rate)}</strong> reach the last step · ${fmtCount(t.first)} → ${fmtCount(t.last)} users</p>
+      <ol class="funnel__steps">${f.steps.map(([name, users, opts = {}], i) => `<li class="fstep${opts.combined ? ' fstep--combined' : ''}">
+        <div class="fstep__row"><span class="fstep__name">${i + 1}. ${escapeHtml(name)}${opts.combined ? '<span class="fstep__mark" title="Tracked as one step">*</span>' : ''}</span><span class="fstep__users">${fmtCount(users)}</span></div>
+        <div class="fstep__bar"><span style="width:${((users / t.first) * 100).toFixed(1)}%"></span></div>
+        ${i < drops.length ? `<p class="fstep__drop${i === worst ? ' is-worst' : ''}">↓ ${pct(drops[i])} drop off (${fmtCount(users - f.steps[i + 1][1])})${i === worst ? ' <span class="fstep__tag">Biggest drop-off</span>' : ''}</p>` : ''}
+      </li>`).join('')}</ol>
+    </li>`;
+  }).join('');
+  showPanel('funnels', trigger || dom.highlightBtn);
+  if (!reduceMotion) gsap.from(dom.hlList.querySelectorAll('.fstep__bar span'), { width: 0, duration: 0.7, stagger: 0.03, delay: 0.35, ease: 'power3.out' });
+  focusPanelItem(focusId && `.funnel[data-funnel="${focusId}"]`);
+}
 
 function openHighlight(focusArea) {
   const j = state.journey;
   if (!j) return;
   stopTour();
   if (state.flyoutOpen) closeFlyout(false);
+  dom.hlTitle.textContent = 'Highlight';
   const items = j.summary?.highlights || PLACEHOLDER_SUMMARY.highlights;
   dom.hlJourney.textContent = j.name;
   dom.hlNote.textContent = j.summary?.intro || (j.summary?.highlights ? 'Key takeaways for this flow.' : 'Key takeaways for this flow – content to be confirmed.');
@@ -1152,21 +1224,8 @@ function openHighlight(focusArea) {
       ${h.area ? `<button class="hl-area" type="button" data-area="${escapeHtml(h.area)}"><span class="area-letter">${escapeHtml(h.area)}</span>Show area ${escapeHtml(h.area)} on the flow</button>` : ''}
     </div></li>`).join('');
   dom.hlList.querySelectorAll('.hl-area').forEach((b) => b.addEventListener('click', () => showArea(b.dataset.area)));
-  state.highlightOpen = true;
-  dom.scrim.hidden = false;
-  dom.hlPanel.setAttribute('aria-hidden', 'false');
-  gsap.killTweensOf([dom.scrim, dom.hlPanel]);
-  gsap.set(dom.hlPanel, { visibility: 'visible' });
-  gsap.to(dom.scrim, { opacity: 1, duration: reduceMotion ? 0 : 0.35 });
-  gsap.to(dom.hlPanel, { xPercent: 0, duration: reduceMotion ? 0 : 0.55, ease: 'power4.out' });
-  if (!reduceMotion) gsap.from(dom.hlList.children, { opacity: 0, x: 18, duration: 0.45, stagger: 0.07, delay: 0.2, ease: 'power3.out', clearProps: 'opacity,transform' });
-  dom.hlClose.focus({ preventScroll: true });
-  const target = typeof focusArea === 'string' && dom.hlList.querySelector(`.hl-item[data-area="${focusArea}"]`);
-  if (target) {
-    target.scrollIntoView({ block: 'nearest' });
-    target.classList.add('is-focus');
-    setTimeout(() => target.classList.remove('is-focus'), 2400);
-  }
+  showPanel('highlight', dom.highlightBtn);
+  focusPanelItem(typeof focusArea === 'string' && `.hl-item[data-area="${focusArea}"]`);
 }
 
 function closeHighlight(animate = true) {
@@ -1176,7 +1235,7 @@ function closeHighlight(animate = true) {
   const d = animate && !reduceMotion ? 1 : 0;
   gsap.to(dom.scrim, { opacity: 0, duration: 0.3 * d, onComplete: () => { if (!state.flyoutOpen) dom.scrim.hidden = true; } });
   gsap.to(dom.hlPanel, { xPercent: 105, duration: 0.4 * d, ease: 'power3.in', onComplete: () => gsap.set(dom.hlPanel, { visibility: 'hidden' }) });
-  dom.highlightBtn.focus({ preventScroll: true });
+  (panelReturnFocus?.isConnected ? panelReturnFocus : dom.highlightBtn).focus({ preventScroll: true });
 }
 
 dom.highlightBtn.addEventListener('click', () => openHighlight());

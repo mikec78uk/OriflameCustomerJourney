@@ -6,6 +6,7 @@
 // stretched vertically (sy) to fit our cards while keeping every box centred on its source position.
 
 import { HIGHLIGHTS } from './highlights.js';
+import { FUNNELS } from './funnels.js';
 import { artboard, finalize, FLOW_LEGEND } from './flow.js';
 
 const SY = 1.75;
@@ -479,6 +480,7 @@ export const purchase = {
     area('area-g1', 'G1', [{ ids: ['f-example'], pad: 24 }], { caption: 'Basket', badge: { at: 'bl-out' } }),
     area('area-g2', 'G2', [{ ids: ['f-checkout'], pad: 24 }], { caption: 'Checkout', badge: { at: 'bl-out' } }),
   ],
+  funnels: FUNNELS.purchase, // GA4 funnels, shown in the summary bar
   summary: { highlights: HIGHLIGHTS.purchase },
   edges,
   legend: [
