@@ -211,6 +211,8 @@ export const DESCRIPTIONS = {
     "Sign-up step offering guest checkout or VIP registration, with name, email, mobile and consent fields, VIP benefits panel and a Checkout as Guest button.",
   'P-37':
     "VIP registration form with name, email, mobile, password, address and invite-code fields, terms consent, a VIP benefits panel and a Continue button.",
+  'P-47':
+    "Checkout step 2 of 3 offering a free gift with the purchase (choose up to 3 products) and a Campaign section of items redeemable with points, beside the order summary, promo code and Continue button.",
   'P-38':
     "Checkout step showing basket thumbnails and contact details, with home delivery or pick-up point options, an empty shipping address form and an order summary.",
   'P-39':

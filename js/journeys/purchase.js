@@ -146,20 +146,21 @@ const nodes = [
   P('P-34', 'Mini – Basket', 8546, 1751),
   P('P-35', 'Basket', 8976, 1752),
 
-  // CHECKOUT AS-IS (P-38 appears twice in the source)
+  // CHECKOUT AS-IS (P-38 appears twice in the source; P-47 Offers added later, so the steps after it moved right)
   P('R-4', 'Basket – Your Details', 9750, 1541),
   P('P-36', 'Basket – Your Details', 9750, 1750),
   P('P-37', 'Register as VIP', 9745, 1959),
-  P('P-38', 'Delivery', 10147, 1751, { id: 'p-38' }),
-  P('P-38', 'Delivery', 10531, 1752, { id: 'p-38-b' }),
-  P('P-39', 'Shipping address', 10914, 1752),
-  P('P-40', 'Payment', 11298, 1752),
-  P('P-41', 'Card details', 11684, 1750),
-  P('P-42', 'Thank you for your order', 12067, 1751),
-  P('P-46', 'Payment refused', 11682, 1992, { type: 'email', flag: 'Dead End' }),
-  P('P-45', 'Order confirmation email', 12066, 1989, { type: 'email' }),
-  P('R-2', 'UK Home', 12497, 1559, { id: 'r-2-checkout' }),
-  P('R-5', 'Become a member', 12500, 1926, { id: 'r-5-checkout' }),
+  P('P-47', 'Offers', 10147, 1751),
+  P('P-38', 'Delivery', 10531, 1751, { id: 'p-38' }),
+  P('P-38', 'Delivery', 10915, 1752, { id: 'p-38-b' }),
+  P('P-39', 'Shipping address', 11298, 1752),
+  P('P-40', 'Payment', 11682, 1752),
+  P('P-41', 'Card details', 12068, 1750),
+  P('P-42', 'Thank you for your order', 12451, 1751),
+  P('P-46', 'Payment refused', 12066, 1992, { type: 'email', flag: 'Dead End' }),
+  P('P-45', 'Order confirmation email', 12450, 1989, { type: 'email' }),
+  P('R-2', 'UK Home', 12881, 1559, { id: 'r-2-checkout' }),
+  P('R-5', 'Become a member', 12884, 1926, { id: 'r-5-checkout' }),
 
   // BCM 6.0 checkout
   P('P-43', 'Basket', 9012, 2680),
@@ -213,13 +214,13 @@ const groups = [
   frame('f-insp', 'INSPIRATION', 5920, 363, 6936, 3808),
   frame('f-offers', 'ALL OFFERS', 7049, 363, 7636, 3808),
   frame('f-example', 'SHOPPING – EXAMPLE', 7913, 1363, 9337, 2133),
-  frame('f-checkout', 'CHECKOUT AS-IS', 9514, 1364, 12952, 2133),
-  frame('f-bcm6', 'BCM 6.0', 7914, 2279, 12969, 3046),
+  frame('f-checkout', 'CHECKOUT AS-IS', 9514, 1364, 13336, 2133),
+  frame('f-bcm6', 'BCM 6.0', 7914, 2279, 13353, 3046),
   frame('f-bcm6-reg', 'New registration flow within checkout', 10501, 2494, 11288, 2863),
-  frame('lane-11', '11 · Abandoned basket journey – Members & End-consuming BrPs', 7914, 3130, 12969, 3470),
-  frame('lane-9', '9 · Post-purchase / Share & Earn journey', 7914, 3510, 12969, 3730),
-  frame('lane-10', '10 · NovAge+ support journey', 7914, 3770, 12969, 4330),
-  frame('lane-12', '12 · Wellosophy CRM journey', 7914, 4370, 12969, 4810),
+  frame('lane-11', '11 · Abandoned basket journey – Members & End-consuming BrPs', 7914, 3130, 13353, 3470),
+  frame('lane-9', '9 · Post-purchase / Share & Earn journey', 7914, 3510, 13353, 3730),
+  frame('lane-10', '10 · NovAge+ support journey', 7914, 3770, 13353, 4330),
+  frame('lane-12', '12 · Wellosophy CRM journey', 7914, 4370, 13353, 4810),
 ];
 
 /* ---------------- CRM journeys 9–12 ---------------- */
@@ -387,16 +388,17 @@ const edges = [
   // CHECKOUT AS-IS
   e('p-36', 'r-4', { fromSide: 't', toSide: 'b' }),
   e('p-36', 'p-37', { fromSide: 'b', toSide: 't' }),
-  e('p-36', 'p-38'),
+  e('p-36', 'p-47'),
+  e('p-47', 'p-38'),
   e('p-38', 'p-38-b'),
   e('p-38-b', 'p-39'),
   e('p-39', 'p-40'),
   e('p-40', 'p-41'),
   e('p-41', 'p-42'),
-  e('p-42', 'r-2-checkout', { via: [[12281, 1751], [12281, 1559]] }),
-  e('p-42', 'r-5-checkout', { via: [[12281, 1751], [12281, 1926]] }),
+  e('p-42', 'r-2-checkout', { via: [[12665, 1751], [12665, 1559]] }),
+  e('p-42', 'r-5-checkout', { via: [[12665, 1751], [12665, 1926]] }),
   e('p-42', 'p-45', { fromSide: 'b', toSide: 't' }),
-  e('p-42', 'p-46', { fromSide: 'b', toSide: 't', via: [[12067, 1855], [11682, 1855]] }),
+  e('p-42', 'p-46', { fromSide: 'b', toSide: 't', via: [[12451, 1855], [12066, 1855]] }),
 
   // BCM 6.0 checkout
   e('t-browse', 'p-43', { style: 'dashed' }),
@@ -417,7 +419,7 @@ const edges = [
 
   // Purchase-triggered journeys – from the order confirmation
   ...['t-9', 't-10-1', 't-10-2', 't-10-3', 't-12-1', 't-12-2', 't-12-3'].map((t) => e('p-45', t, {
-    fromSide: 'b', via: [[12066, 3088], [7880, 3088], [7880, 0]],
+    fromSide: 'b', via: [[12450, 3088], [7880, 3088], [7880, 0]],
   })),
 
   // 9. Share & Earn
@@ -448,7 +450,7 @@ const edges = [
 
 // Screenshots in assets/screens/ (redacted web JPEGs), named by reference number.
 const SCREENSHOTS = new Set([
-  ...Array.from({ length: 46 }, (_, i) => `P-${i + 1}`),
+  ...Array.from({ length: 47 }, (_, i) => `P-${i + 1}`),
   'R-2', 'R-4', 'R-5', 'R-39', 'R-40', 'R-45',
   'CRM-9.1', 'CRM-10.2', 'CRM-10.3', 'CRM-10.4', 'CRM-10.5', 'CRM-10.6', 'CRM-10.9', 'CRM-10.10',
   'CRM-11.1', 'CRM-11.3', 'CRM-12.1', 'CRM-12.2', 'CRM-12.3', 'CRM-12.4',
@@ -461,7 +463,7 @@ export const purchase = {
   name: 'Purchase',
   status: 'ready',
   metrics: false, // hide visits, conversion and traffic sources/destinations until real data is available
-  width: 13200,
+  width: 13600,
   height: 8520,
   nodes,
   terminals,
