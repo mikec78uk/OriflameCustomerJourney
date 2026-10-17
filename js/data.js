@@ -3,6 +3,7 @@ import { newsletter } from './journeys/newsletter.js';
 import { training } from './journeys/training.js';
 import { purchase } from './journeys/purchase.js';
 import { crm } from './journeys/crm.js';
+import { subscription } from './journeys/subscription.js';
 
 // Journey list. Each journey's content lives in js/journeys/ (transcribed from the user-flow PDFs).
 
@@ -18,12 +19,7 @@ export const journeys = [
   newsletter,
   training,
   purchase,
-  {
-    id: 'subscription',
-    name: 'Subscription',
-    status: 'coming-soon',
-    hidden: true, // hidden for now; remove to show the tab again
-  },
+  subscription,
   crm,
   {
     id: 'revieve',

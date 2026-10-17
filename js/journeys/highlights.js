@@ -99,6 +99,32 @@ export const HIGHLIGHTS = {
     },
   ],
 
+  subscription: [
+    {
+      area: 'H',
+      title: 'Subscription',
+      scope: 'Subscription BrP. From PLP to Order confirmation (S-1 to S-13).',
+      body: [
+        'Starting a subscription is easy, but what repeats and what it will cost are unclear.',
+        [
+          'Eligible products show “Subscribe & Save” on listing pages.',
+          'Product pages and the mini basket offer a one-time purchase or delivery every 2–9 weeks. Every 3 weeks is pre-selected as recommended.',
+          'The basket separates subscriptions from other purchases.',
+          'On desktop, “Add to bag” sits at the bottom of the page, away from the subscription choice.',
+        ],
+        'After payment, customers land on an order detail page rather than a confirmation page. It barely mentions the subscription: “recurring payment” under Payment does not explain whether the whole order repeats or just the subscribed item.',
+        'Future costs are also unclear:',
+        [
+          'The journey never states what later deliveries will cost.',
+          'A prompt to add a product for free shipping looks as though free shipping already applies.',
+          'Neither the order page nor the subscription confirmation email—which only links elsewhere—explains whether later deliveries are free.',
+        ],
+        'Customers cannot resolve these questions without leaving checkout. Uncertainty about repeat orders and costs may lead to early cancellations or complaints.',
+        'Still to confirm: Where customers can view, change or cancel subscriptions; future delivery costs; whether the three-week default matches product lifespan; cancellations after the first delivery; what new buyers’ baskets show under BCM 6.0, when the terms make every registrant a Brand Partner.',
+      ],
+    },
+  ],
+
   purchase: [
     {
       area: 'E',
