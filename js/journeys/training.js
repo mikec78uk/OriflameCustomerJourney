@@ -5,6 +5,7 @@
 // Registration journey; R-35 uses a screenshot taken for this flow (R-35-training).
 
 import { HIGHLIGHTS } from './highlights.js';
+import { USABILITY } from './usability.js';
 import { artboard, finalize, FLOW_LEGEND, SOURCE as source } from './flow.js';
 
 const { page, terminal, area, edge: e } = artboard({ ox: 80, oy: 40 });
@@ -85,7 +86,7 @@ const edges = [
 // Screenshots in assets/screens/ (redacted web JPEGs), named by reference number.
 const SCREENSHOTS = new Set([...Array.from({ length: 15 }, (_, i) => `O-${i + 1}`), 'R-2']);
 
-finalize({ nodes, terminals, edges, screenshots: SCREENSHOTS });
+finalize({ nodes, terminals, edges, screenshots: SCREENSHOTS, usability: USABILITY.training });
 
 export const training = {
   id: 'brand-partner-training',
@@ -102,5 +103,5 @@ export const training = {
   areas: [area('area-c', 'C', [{ ids: nodes.map((n) => n.id), pad: [120, 70, 120, 70] }], { caption: 'Brand Partner onboarding' })],
   summary: { highlights: HIGHLIGHTS.training },
   edges,
-  legend: FLOW_LEGEND.filter((i) => !['trigger', 'email', 'push', 'decision', 'aud-m', 'delay'].includes(i.kind)),
+  legend: [...FLOW_LEGEND.filter((i) => !['trigger', 'email', 'push', 'decision', 'aud-m', 'delay'].includes(i.kind)), { kind: 'ux', label: 'Usability friction (count)' }],
 };

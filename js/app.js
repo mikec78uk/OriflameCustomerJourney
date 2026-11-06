@@ -1,6 +1,7 @@
 import { meta, journeys } from './data.js';
 import { STATS_PERIOD } from './journeys/stats.js';
 import { FUNNEL_PERIOD } from './journeys/funnels.js';
+import { USABILITY_OVERVIEW, USABILITY_STUDY, MARKETS } from './journeys/usability.js';
 
 gsap.registerPlugin(MotionPathPlugin);
 
@@ -37,6 +38,7 @@ const dom = {
   controls: $('#controls'),
   zoomLevel: $('#zoom-level'),
   tourBtn: $('#tour-btn'),
+  frictionBtn: $('#friction-btn'),
   scrim: $('#scrim'),
   flyout: $('#flyout'),
   flyScroll: $('#fly-scroll'),
@@ -109,7 +111,7 @@ const DEFAULT_LEGEND = [
 function renderLegend(journey) {
   const items = journey.legend || DEFAULT_LEGEND;
   dom.legendItems.innerHTML = items.map((i) => `<span class="legend__item"><span class="legend__swatch legend__swatch--${i.kind}">${
-    { finding: '⚠', 'aud-m': 'M', 'aud-brp': 'BrP', delay: ICONS.clock }[i.kind] || ''}</span>${escapeHtml(i.label)}</span>`).join('');
+    { finding: '⚠', 'aud-m': 'M', 'aud-brp': 'BrP', delay: ICONS.clock, ux: ICONS.person }[i.kind] || ''}</span>${escapeHtml(i.label)}</span>`).join('');
 }
 
 function selectJourney(id, { intro = true, openNode = null } = {}) {
@@ -132,6 +134,7 @@ function selectJourney(id, { intro = true, openNode = null } = {}) {
     } else {
       hideComingSoon();
       renderLegend(journey);
+      dom.frictionBtn.hidden = !journey.nodes?.some((n) => n.uxCount);
       renderSummary(journey);
       buildCanvas(journey);
       state.userMoved = false;
@@ -257,7 +260,18 @@ function roundedPath(pts, radius = 14) {
   return `${d} L${last[0]},${last[1]}`;
 }
 
+// Circular market flags for usability-testing findings (UK, Poland, Portugal).
+const FLAG_SVG = {
+  UK: '<path d="M0 0h20v20H0z" fill="#012169"/><path d="M0 0l20 20M20 0L0 20" stroke="#fff" stroke-width="4"/><path d="M0 0l20 20M20 0L0 20" stroke="#C8102E" stroke-width="1.6"/><path d="M10 0v20M0 10h20" stroke="#fff" stroke-width="6"/><path d="M10 0v20M0 10h20" stroke="#C8102E" stroke-width="3.4"/>',
+  PL: '<path d="M0 0h20v10H0z" fill="#fff"/><path d="M0 10h20v10H0z" fill="#DC143C"/>',
+  PT: '<path d="M0 0h8v20H0z" fill="#006600"/><path d="M8 0h12v20H8z" fill="#FF0000"/><circle cx="8" cy="10" r="3.6" fill="#FFCC00"/><circle cx="8" cy="10" r="2.2" fill="#FF0000" stroke="#fff" stroke-width=".8"/>',
+};
+const flagDot = (code) => `<span class="flag-dot" title="${escapeHtml(MARKETS[code] || code)}" role="img" aria-label="${escapeHtml(MARKETS[code] || code)}"><svg viewBox="0 0 20 20" preserveAspectRatio="xMidYMid slice">${FLAG_SVG[code] || ''}</svg></span>`;
+// Evidence per market, e.g. [['UK', '6/10'], ['PL', 'Observed']] → flag + count pairs.
+const evidenceRow = (ev = []) => ev.map(([m, v]) => `<span class="ux-ev">${flagDot(m)}<span>${escapeHtml(v)}</span></span>`).join('');
+
 const ICONS = {
+  person: '<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><circle cx="12" cy="7.5" r="4"/><path d="M4 21a8 8 0 0 1 16 0z"/></svg>',
   open: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>',
   email: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg>',
   phone: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>',
@@ -513,7 +527,7 @@ function buildCanvas(journey) {
   });
 
   journey.nodes.forEach((node) => {
-    const card = el('button', `card${node.flow ? ' card--flow' : ''}${node.type === 'email' ? ' card--email' : ''}${node.type === 'push' ? ' card--push' : ''}${node.notUk ? ' is-not-uk' : ''}`);
+    const card = el('button', `card${node.flow ? ' card--flow' : ''}${node.type === 'email' ? ' card--email' : ''}${node.type === 'push' ? ' card--push' : ''}${node.notUk ? ' is-not-uk' : ''}${node.uxCount ? ` has-friction friction--${node.uxSeverity >= 0.5 ? 'high' : 'mid'}` : ''}`);
     card.type = 'button';
     card.dataset.id = node.id;
     const title = [node.ref, node.fullName || node.name, node.audience && `(${node.audience.label})`].filter(Boolean).join(' ');
@@ -536,7 +550,7 @@ function buildCanvas(journey) {
         <span class="card__meter"><span data-w="${parseFloat(node.rate) || 0}"></span></span>` : ''}
         ${!metrics && node.stats ? `<span class="card__stat" title="Google Analytics total users, change ${STATS_PERIOD.comparison}">
           <strong>${fmtCount(node.stats.users)}</strong> users ${node.stats.usersChange != null ? changeBadge(node.stats.usersChange) : ''}</span>` : ''}
-        <span class="card__findings${typeof node.findings === 'number' ? '' : ' is-tbd'}"><span aria-hidden="true">⚠</span> ${escapeHtml(findingsLabel(node.findings))}</span>
+        <span class="card__findings${typeof node.findings === 'number' ? '' : ' is-tbd'}"><span aria-hidden="true">⚠</span> ${escapeHtml(findingsLabel(node.findings))}${node.hasUsability ? `<span class="card__ux" title="Includes usability testing findings">${ICONS.person}</span>` : ''}</span>
       </span>`;
     card.addEventListener('click', (ev) => {
       if (dragState.suppressClick) { ev.preventDefault(); return; }
@@ -548,6 +562,23 @@ function buildCanvas(journey) {
     card.addEventListener('focus', () => !state.tour && lightEdgesFor(node.id));
     dom.world.appendChild(card);
     state.cards.set(node.id, card);
+
+    // Usability friction badge, pinned to the card's top-right corner (outside the card, which clips its content).
+    if (node.uxCount) {
+      const b = el('button', `friction-badge friction--${node.uxSeverity >= 0.5 ? 'high' : 'mid'}`, `${ICONS.person}<span>${node.uxCount}</span>`);
+      b.type = 'button';
+      b.title = `${node.uxCount} usability friction${node.uxCount === 1 ? '' : 's'} – open to see them`;
+      b.setAttribute('aria-label', `${title}: ${b.title}`);
+      Object.assign(b.style, { left: `${node.x + node.w}px`, top: `${node.y}px` });
+      b.addEventListener('click', (ev) => {
+        if (dragState.suppressClick) { ev.preventDefault(); return; }
+        ev.stopPropagation();
+        stopTour();
+        openFlyout(node);
+        setTimeout(() => dom.flyDetail.querySelector('.note--ux')?.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' }), 600);
+      });
+      dom.world.appendChild(b);
+    }
 
     if (node.flag) {
       const f = el('div', `flag flag--node${node.notUk ? ' is-not-uk' : ''}`, `<span aria-hidden="true">⚠</span> ${escapeHtml(node.flag)}`);
@@ -932,6 +963,14 @@ function stopTour() {
 dom.tourBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 dom.tourBtn.addEventListener('click', () => (state.tour ? stopTour() : startTour()));
 
+// Frictions layer: halos and count badges on steps with usability-testing frictions (on by default).
+dom.frictionBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+dom.frictionBtn.addEventListener('click', () => {
+  const on = dom.frictionBtn.getAttribute('aria-pressed') !== 'true';
+  dom.frictionBtn.setAttribute('aria-pressed', String(on));
+  document.documentElement.classList.toggle('hide-friction', !on);
+});
+
 /* ------------------------------------------------------------------ */
 /* Flyout                                                              */
 /* ------------------------------------------------------------------ */
@@ -991,7 +1030,12 @@ function renderDetail(node) {
     <section class="section"><h3 class="section__title">Where did customers come from?</h3>${statList(d.cameFrom)}</section>
     <section class="section"><h3 class="section__title">Where did they go next?</h3>${statList(d.wentNext)}</section>` : ''}
     <section class="section"><h3 class="section__title">Challenges</h3><div class="notes">
-      ${d.challenges.map((c) => `<div class="note note--challenge">${c.title ? `<span class="note__title">${escapeHtml(c.title)}</span>` : ''}<span>${escapeHtml(c.text)}</span>${c.source ? `<span class="note__meta">${escapeHtml(c.source)}</span>` : ''}</div>`).join('')}
+      ${d.challenges.map((c) => (c.kind === 'usability'
+    // Usability-testing findings: evidence per market (circular flags), an optional participant quote, the study as source.
+    ? `<div class="note note--challenge note--ux"><span class="note__title">${escapeHtml(c.title)}</span><span>${escapeHtml(c.text)}</span>
+        ${c.quote ? `<q class="note__quote">${escapeHtml(c.quote)}</q>` : ''}
+        <span class="note__ux">${evidenceRow(c.evidence)}<span class="note__meta">${ICONS.person} ${escapeHtml(c.source)}</span></span></div>`
+    : `<div class="note note--challenge">${c.title ? `<span class="note__title">${escapeHtml(c.title)}</span>` : ''}<span>${escapeHtml(c.text)}</span>${c.source ? `<span class="note__meta">${escapeHtml(c.source)}</span>` : ''}</div>`)).join('')}
     </div></section>
     <section class="section"><h3 class="section__title">Opportunities</h3><div class="notes">
       ${d.opportunities.map((o) => `<div class="note note--opportunity">${o.title ? `<span class="note__title">${escapeHtml(o.title)}</span>` : ''}<span>${escapeHtml(o.text)}</span></div>`).join('')}
@@ -1268,6 +1312,17 @@ function openFunnels(focusId, trigger) {
   focusPanelItem(focusId && `.funnel[data-funnel="${focusId}"]`);
 }
 
+// "From usability testing" block inside an Overview item: headline frictions, then ones not tied to a single step.
+function uxBlock(ux) {
+  if (!ux) return '';
+  const row = (u) => `<li><span class="hl-ux__ev">${evidenceRow(u.evidence)}</span><span>${escapeHtml(u.text)}</span></li>`;
+  return `<div class="hl-ux">
+    <p class="hl-ux__title">${ICONS.person} From usability testing <span>${escapeHtml(USABILITY_STUDY.date)} · ${escapeHtml(USABILITY_STUDY.note)}</span></p>
+    <ul class="hl-ux__list">${ux.items.map(row).join('')}</ul>
+    ${ux.general?.length ? `<p class="hl-ux__sub">Not tied to a single step on the map</p><ul class="hl-ux__list">${ux.general.map(row).join('')}</ul>` : ''}
+  </div>`;
+}
+
 function openHighlight(focusArea) {
   const j = state.journey;
   if (!j) return;
@@ -1291,6 +1346,7 @@ function openHighlight(focusArea) {
       ${h.text ? para(h.text) : ''}
       ${h.bullets ? list(h.bullets) : ''}
       ${(h.body || []).map((b) => (Array.isArray(b) ? list(b) : para(b))).join('')}
+      ${uxBlock(USABILITY_OVERVIEW[h.area])}
       ${h.area ? `<button class="hl-area" type="button" data-area="${escapeHtml(h.area)}"><span class="area-letter">${escapeHtml(h.area)}</span>Show area ${escapeHtml(h.area)} on the flow</button>` : ''}
     </div></li>`).join('');
   dom.hlList.querySelectorAll('.hl-area').forEach((b) => b.addEventListener('click', () => showArea(b.dataset.area)));

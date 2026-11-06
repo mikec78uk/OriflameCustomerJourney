@@ -7,6 +7,7 @@
 // to the source, placed on the same grid.
 
 import { HIGHLIGHTS } from './highlights.js';
+import { USABILITY } from './usability.js';
 import { FUNNELS } from './funnels.js';
 import { artboard, finalize, FLOW_LEGEND, NOT_UK_LEGEND, SOURCE as source } from './flow.js';
 
@@ -298,7 +299,7 @@ const edges = [
 // CRM emails (E-n) have no screenshots yet.
 const SCREENSHOTS = new Set(Array.from({ length: 50 }, (_, i) => `R-${i + 1}`));
 
-finalize({ nodes, terminals, triggers, decisions, edges, screenshots: SCREENSHOTS, describeTerminal: { 'end-brp': 'Becomes a Brand Partner (BrP)' } });
+finalize({ nodes, terminals, triggers, decisions, edges, screenshots: SCREENSHOTS, describeTerminal: { 'end-brp': 'Becomes a Brand Partner (BrP)' }, usability: USABILITY.registration });
 
 // Step ids r-a … r-b, for highlight areas.
 const REFS = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => `r-${a + i}`);
@@ -339,5 +340,5 @@ export const registration = {
     highlights: HIGHLIGHTS.registration,
   },
   edges,
-  legend: [...FLOW_LEGEND, NOT_UK_LEGEND],
+  legend: [...FLOW_LEGEND, { kind: 'ux', label: 'Usability friction (count)' }, NOT_UK_LEGEND],
 };
