@@ -6,6 +6,7 @@
 // stretched vertically (sy) to fit our cards while keeping every box centred on its source position.
 
 import { HIGHLIGHTS } from './highlights.js';
+import { USABILITY } from './usability.js';
 import { FUNNELS } from './funnels.js';
 import { artboard, finalize, FLOW_LEGEND } from './flow.js';
 
@@ -460,7 +461,7 @@ const SCREENSHOTS = new Set([
   'CRM-11.1', 'CRM-11.3', 'CRM-12.1', 'CRM-12.2', 'CRM-12.3', 'CRM-12.4',
 ]);
 
-finalize({ nodes, terminals, ghosts, decisions, groups, edges, screenshots: SCREENSHOTS });
+finalize({ nodes, terminals, ghosts, decisions, groups, edges, screenshots: SCREENSHOTS, usability: USABILITY.purchase });
 
 export const purchase = {
   id: 'purchase',
@@ -489,5 +490,6 @@ export const purchase = {
     ...FLOW_LEGEND.filter((i) => !['trigger', 'aud-m', 'aud-brp'].includes(i.kind)),
     { kind: 'subpages', label: 'Group of PLP subpages' },
     { kind: 'dashed', label: 'Can land directly' },
+    { kind: 'ux', label: 'Usability friction (count)' },
   ],
 };

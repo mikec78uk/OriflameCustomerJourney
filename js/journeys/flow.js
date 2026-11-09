@@ -168,7 +168,8 @@ export function finalize({ nodes, terminals = [], triggers = [], ghosts = [], de
     const outs = destinations(n.id);
     const uniqueOuts = [...new Set(outs.map((o) => o.id))];
     n.next = uniqueOuts.length === 1 && isPage(uniqueOuts[0]) ? byId.get(uniqueOuts[0]).name : TBD;
-    const ux = (n.ref && usability[n.ref]) || [];
+    // Keyed by step id (for unreferenced or duplicated steps) or by reference.
+    const ux = usability[n.id] || (n.ref && usability[n.ref]) || [];
     n.challenges = [...n.challenges, ...ux.map((u) => ({ ...u, kind: 'usability', source: `${USABILITY_STUDY.source} · ${USABILITY_STUDY.date}` }))];
     n.hasUsability = ux.length > 0;
     n.uxCount = ux.length;

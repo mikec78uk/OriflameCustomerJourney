@@ -1,15 +1,19 @@
-// Usability testing findings from "Registration-Journeys-Usability-Report-Findings.pptx" (unmoderated think-aloud,
-// 10 participants per journey, November 2026): UK and Poland test the existing dual registration, Portugal tests
-// BCM 6.0. Only frictions are recorded – things that worked are left out. Counts only, no participant IDs.
+// Usability testing findings (unmoderated think-aloud, 10 participants per journey or market, November 2026):
+// - "Registration-Journeys-Usability-Report-Findings.pptx": UK and Poland test the existing dual registration,
+//   Portugal tests BCM 6.0 (Registration and Brand Partner Training tabs).
+// - "Shopping-Checkout-Journeys-Usability-Report.pptx": UK and Poland test guest checkout, Portugal tests the
+//   BCM 6.0 checkout with a required account (Purchase tab; Portugal's basket and account findings sit on the
+//   BCM 6.0 lane). "Also observed: check in QA" items are left out.
+// Only frictions are recorded – things that worked are left out. Counts only, no participant IDs.
 //
-// USABILITY[journey][ref] lists findings shown with that step's challenges (and counted in its Findings).
+// USABILITY[journey][ref or step id] lists findings shown with that step's challenges (and counted in its Findings).
 // USABILITY_OVERVIEW[area] holds the headline frictions for an Overview area, plus `general` ones that don't
 // belong to a single step on the map. `markets` drives the circular flags; `evidence` is a count or "Observed".
 
 export const USABILITY_STUDY = {
   source: 'Usability testing',
   date: 'November 2026',
-  note: '10 participants per journey, so counts are directional.',
+  note: '10 participants per test, so counts are directional.',
 };
 
 export const MARKETS = {
@@ -200,6 +204,125 @@ export const USABILITY = {
   },
 };
 
+USABILITY.purchase = {
+  // E – browsing products
+  'P-30': [{
+    title: 'Filters don’t apply when selected',
+    text: 'Selected filters were not applied, and shoppers did not notice the apply button at the bottom right of the filter panel.',
+    evidence: [['PL', 'Observed']],
+    quote: 'I’m expecting those filters to be applied … They are not.',
+  }],
+  'P-31': [{
+    title: '“Buy” reads as an instant purchase',
+    text: 'The “Buy” (“Kup”) button on product pages and listings made shoppers feel they would commit straight away; they expected “Add to basket”.',
+    evidence: [['UK', 'Observed'], ['PL', 'Observed']],
+    quote: 'I’m adding to basket. I’m not buying it.',
+  }],
+  men: [{
+    title: 'No clear route to men’s skincare',
+    text: 'Men’s skincare sits under different categories, and a shopper could not find it.',
+    evidence: [['UK', 'Observed']],
+    quote: 'Where is the skincare? I can’t find skincare for men.',
+  }],
+
+  // F – Inspiration
+  magazine: [{
+    title: 'Magazine link didn’t respond',
+    text: 'The Magazine link in the Explore (Inspiration) menu did not respond.',
+    evidence: [['PT', 'Observed']],
+  }],
+
+  // G1 – basket (guest checkout: UK, Poland)
+  'P-35': [
+    {
+      title: 'Added items not recognised as in the basket',
+      text: 'Items added automatically are labelled “Recommended by us”, so shoppers took them for suggestions; they also disliked items being added for them, even free ones.',
+      evidence: [['UK', '4/10']],
+      quote: 'it says we’ve added some items to your basket … but they are not added.',
+    },
+    {
+      title: '“Free gift” items are charged',
+      text: 'A magazine and leaflets were added as “Prezent gratis” (free gift), without images, yet cost about 6,7 zł; shoppers who only saw the “free” message assumed they cost nothing. The magazine opened an error page when clicked.',
+      evidence: [['PL', '7/10 noticed the charge']],
+      quote: 'you say gratis, which is you know, free of charge, but then you charge me',
+    },
+    {
+      title: 'No delivery cost in the basket',
+      text: 'The basket shows no delivery cost, and the free-delivery rule is easy to miss: in the UK it applies only to VIP orders over £45.',
+      evidence: [['UK', '3/10 expected to pay, 3/10 unsure'], ['PL', '3/10 found no delivery information']],
+      quote: 'I don’t know, it isn’t clear from the basket page',
+    },
+    {
+      title: 'Recommended items without a clear button',
+      text: 'Some recommended items had no clear Add button; adding one bundle added only part of it.',
+      evidence: [['PL', 'Observed']],
+    },
+  ],
+
+  // G1 – basket (BCM 6.0: Portugal)
+  'P-43': [
+    {
+      title: 'Unclear whether delivery is charged',
+      text: 'The basket shows no delivery cost; free delivery applies to selected products, stated only in a banner at the top.',
+      evidence: [['PT', '8/10 unsure']],
+      quote: 'the subtotal does not mention anything related to delivery being paid',
+    },
+    {
+      title: 'Discount steps and added items hard to read',
+      text: 'The discount steps were noticed only after reaching 10%; some added items could not be identified, one had no picture, and a reduced price was not explained.',
+      evidence: [['PT', '2/10']],
+    },
+  ],
+
+  // G2 – checkout (guest checkout: UK, Poland)
+  'P-36': [
+    {
+      title: 'Error after the guest checkout form',
+      text: 'After the guest form, shoppers saw “Sorry, something went wrong” and a long code with no explanation; most returned to the basket.',
+      evidence: [['UK', '4/8 mentioned it']],
+      quote: 'Oh, something went wrong. Kind of. Not my problem.',
+    },
+    {
+      title: 'Guest option not seen',
+      text: 'Shoppers did not see that they could buy without an account, and created one because they thought it was the only option.',
+      evidence: [['PL', '5/7; 4 created an account']],
+      quote: 'I did create new account, huge buttons and UI guided me in that way.',
+    },
+    {
+      title: 'Fields turn red while typing',
+      text: 'Fields turned red before shoppers had finished typing, and disabled buttons did not say what was missing.',
+      evidence: [['UK', 'Observed'], ['PL', 'Observed']],
+    },
+  ],
+  'P-37': [{
+    title: 'Reasons not to create an account',
+    text: 'Shoppers avoided an account because of marketing emails and the longer VIP form.',
+    evidence: [['UK', '3/10']],
+  }],
+  'p-38': [{
+    title: 'Delivery fee is a surprise',
+    text: 'Delivery costs appeared only at checkout: £4.95 for guests on orders over £45 (free delivery is for VIP orders), 17–20 zł in Poland, or free delivery lost after a discount.',
+    evidence: [['UK', '2/8 charged'], ['PL', '3/10 surprised']],
+    quote: 'The information about the cost of the delivery should be displayed earlier.',
+  }],
+
+  // G2 – checkout (BCM 6.0: Portugal, account required)
+  'P-44': [
+    {
+      title: 'Shoppers want a guest option',
+      text: 'The account is required with no guest option; shoppers asked for one or an optional account, and one would shop elsewhere. Some realised an account was required only when completing the order.',
+      evidence: [['PT', '6/10 asked for it']],
+      quote: 'I don’t like creating accounts just to make purchase once so I avoid those websites.',
+    },
+    {
+      title: 'Couldn’t get past the account form',
+      text: 'Fields turned red while typing and the button stayed disabled without a reason; some did not realise they had to create a password.',
+      evidence: [['PT', '2/10 could not continue']],
+      quote: 'the registration does not seem to go through here, which I do not know why',
+    },
+  ],
+};
+
 export const USABILITY_OVERVIEW = {
   A1: {
     items: [
@@ -241,6 +364,46 @@ export const USABILITY_OVERVIEW = {
     ],
     general: [
       { evidence: [['UK', 'Observed']], text: 'The Success plan and Oriflame Academy pages did not load.' },
+    ],
+  },
+
+  E: {
+    items: [
+      { evidence: [['UK', 'Observed'], ['PL', 'Observed']], text: '“Buy” (“Kup”) reads as an instant purchase rather than “Add to basket”.' },
+      { evidence: [['UK', 'Observed']], text: 'There is no clear route to men’s skincare.' },
+      { evidence: [['PL', 'Observed']], text: 'Filters don’t apply when selected.' },
+    ],
+    general: [
+      { evidence: [['PT', 'Observed']], text: 'The Instagram and social-post module did not load; shoppers saw grey boxes and thought something was wrong.' },
+    ],
+  },
+  F: {
+    items: [
+      { evidence: [['UK', 'Observed'], ['PL', 'Observed']], text: 'Shoppers used the Shop sections rather than the catalogue or Magazine.' },
+      { evidence: [['PT', 'Observed']], text: 'The Magazine link in the Explore menu didn’t respond.' },
+    ],
+    general: [
+      { evidence: [['PT', 'Observed']], text: '“Explorar” (Explore) was taken for the shop; shoppers didn’t enter the catalogue and went back to “Loja”.' },
+    ],
+  },
+  G1: {
+    items: [
+      { evidence: [['UK', '4/10']], text: 'Items added automatically weren’t recognised as being in the basket.' },
+      { evidence: [['PL', '7/10']], text: '“Free gift” items were charged about 6,7 zł.' },
+      { evidence: [['UK', '6/10'], ['PL', '3/10'], ['PT', '8/10']], text: 'The basket shows no delivery cost, so shoppers expected to pay, weren’t sure or found no information.' },
+    ],
+    general: [],
+  },
+  G2: {
+    items: [
+      { evidence: [['UK', '4/8']], text: 'An error followed the guest checkout form.' },
+      { evidence: [['PL', '5/7']], text: 'The guest option wasn’t seen, so shoppers created an account.' },
+      { evidence: [['PT', '6/10']], text: 'BCM 6.0 shoppers asked for a guest option; 2/10 couldn’t get past the account form.' },
+      { evidence: [['UK', 'Observed'], ['PL', 'Observed'], ['PT', 'Observed']], text: 'Fields turn red while typing, and disabled buttons don’t say what’s missing.' },
+    ],
+    general: [
+      { evidence: [['PL', '3/10']], text: 'A “Premium” 23% discount appeared with no explanation.' },
+      { evidence: [['PT', 'Observed']], text: 'The BCM 6.0 upsell step showed the products again and felt like a step back; the delivery step said “Free shipping” next to a €5 charge.' },
     ],
   },
 };
