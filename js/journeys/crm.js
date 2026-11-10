@@ -2,11 +2,14 @@
 // "CRM journeys overview (BCM markets) 2025". Each journey is a lane; references are CRM-<journey>.<step>,
 // following the document's journey numbering. Journeys triggered on the site are drawn in their own flows
 // (Welcome + Members Upgrade → Registration; Leads welcome → Newsletter).
+// Journey 17 (Recognition) is from "CRM journeys overview – Part 2 (MM and BCM markets) 2026", where it is
+// journey 1; Part 2 restarts its numbering, so its journeys continue from 17 here.
 
 import { artboard, finalize, FLOW_LEGEND, NOT_UK_LEGEND } from './flow.js';
 
 const { page, terminal, decision, banner, edge: e } = artboard({ ox: 0, oy: 0 });
 const CRM = 'CRM journeys overview (BCM markets) 2025';
+const CRM2 = 'CRM journeys overview – Part 2, 2026';
 
 // Layout grid: one row per flow; steps every 380px after the trigger.
 const col = (i) => 380 + i * 380;
@@ -17,7 +20,9 @@ const start = (id, label, cy, opts) => terminal(id, label, 170, cy, { d: 160, ..
 const lane = (id, label, y, h) => ({ id, label, x: 40, y, w: 2940, h });
 
 // Rows
-const A = 200, B = 520, C = 840, D1 = 1160, D2 = 1420, E1 = 1880, E2 = 2140, F = 2460, G = 2780, H = 3320;
+// Lanes run in journey-number order: 4, 6, 7, 7 (Leads), 8, 14, 15, 16, 17.
+const D1 = 200, D2 = 460, A = 920, B = 1240, C = 1560, H = 1880, F = 2200, E1 = 2520, E2 = 2780, G = 3100;
+const R1 = 3640, R2 = 3860, R3 = 4080; // 17. Recognition
 
 // Steps from the overview that don't apply in the UK, labelled above the step.
 const banners = [
@@ -26,19 +31,28 @@ const banners = [
 ];
 
 const groups = [
-  lane('lane-6', '6 · Campaign Support – Builders & Sellers · Live', 60, 280),
-  lane('lane-7', '7 · Campaign Support – Members & End-consuming BrPs · Live', 380, 280),
-  lane('lane-7-leads', '7 · Campaign Support – Leads (newsletter subscribers) · Live', 700, 280),
-  lane('lane-4', '4 · Beauty Rewards support · Live in markets with Beauty Rewards (not the UK)', 1020, 680),
-  lane('lane-15', '15 · Reactivation · Live in most markets', 1740, 540),
-  lane('lane-14', '14 · Birthday · Status not stated', 2320, 280),
-  lane('lane-16', '16 · Profile completion · New (proposal)', 2640, 500),
-  lane('lane-8', '8 · Ad hoc communication', 3180, 280),
+  lane('lane-4', '4 · Beauty Rewards support · Live in markets with Beauty Rewards (not the UK)', 60, 680),
+  lane('lane-6', '6 · Campaign Support – Builders & Sellers · Live', 780, 280),
+  lane('lane-7', '7 · Campaign Support – Members & End-consuming BrPs · Live', 1100, 280),
+  lane('lane-7-leads', '7 · Campaign Support – Leads (newsletter subscribers) · Live', 1420, 280),
+  lane('lane-8', '8 · Ad hoc communication', 1740, 280),
+  lane('lane-14', '14 · Birthday · Status not stated', 2060, 280),
+  lane('lane-15', '15 · Reactivation · Live in most markets', 2380, 540),
+  lane('lane-16', '16 · Profile completion · New (proposal)', 2960, 500),
+  lane('lane-17', '17 · Recognition (Part 2, journey 1) · Live in UK', 3500, 720),
 ];
 
 const CS_WEEK = (n) => `Week ${n} weekly offer, personalised product recommendations and other important initiatives.`;
 
 const nodes = [
+  // 4. Beauty Rewards support
+  step('4.1', 'Beauty Rewards programme intro', 0, D1, { notUk: true, ...email(),
+    description: `Beauty Rewards support journey, flow 1 – Day 3 after the trigger (2nd campaign after the 1st purchase) (${CRM}). Introduces the opportunity to earn double Hearts; Beauty Rewards benefits – why to collect Hearts and how to redeem.` }),
+  step('4.2', 'Beauty Rewards reminder at campaign start', 0, D2, { notUk: true, ...push(),
+    description: `Beauty Rewards support journey, flow 2 – Push 1 on Day 3 of campaigns C2–C5 (${CRM}). Reminder to place a qualifying order to earn double Hearts and enjoy great rewards.` }),
+  step('4.3', 'Beauty Rewards reminder at campaign end', 2, D2, { notUk: true, ...push(),
+    description: `Beauty Rewards support journey, flow 2 – Push 2, 3 days before the period ends, if no qualifying order has been placed (${CRM}). Don't miss the opportunity to earn double Hearts.` }),
+
   // 6. Campaign Support – Builders & Sellers
   step('6.1', 'Campaign opening', 0, A, { ...email(['Email', 'Push']), audience: 'BrP',
     description: `Campaign Support journey, Builders & Sellers – Day 1 (${CRM}). Wallet status update, key launches and offers, out-of-catalogue actions, sales support actions (recruitment, reactivation, etc.), conference information, guide to business tools; NEW Beauty Rewards drop via Push. Content order differs by segment: sales info first for Sellers, business-building info first for Builders. Sent once per 2 campaigns to those not engaged.` }),
@@ -67,13 +81,15 @@ const nodes = [
   { ...step('7.1', 'Campaign opening (Leads version)', 0, C, { ...email(), screenshot: false, // CRM-7.1.jpg is the Members version
     description: `Campaign Support journey, Leads (newsletter subscribers) – Day 1 (${CRM}). Leads receive only the campaign opening email, without the Wallet status block and with a promotion of the Member concept and benefits.` }), id: 'crm-7-1-leads' },
 
-  // 4. Beauty Rewards support
-  step('4.1', 'Beauty Rewards programme intro', 0, D1, { notUk: true, ...email(),
-    description: `Beauty Rewards support journey, flow 1 – Day 3 after the trigger (2nd campaign after the 1st purchase) (${CRM}). Introduces the opportunity to earn double Hearts; Beauty Rewards benefits – why to collect Hearts and how to redeem.` }),
-  step('4.2', 'Beauty Rewards reminder at campaign start', 0, D2, { notUk: true, ...push(),
-    description: `Beauty Rewards support journey, flow 2 – Push 1 on Day 3 of campaigns C2–C5 (${CRM}). Reminder to place a qualifying order to earn double Hearts and enjoy great rewards.` }),
-  step('4.3', 'Beauty Rewards reminder at campaign end', 2, D2, { notUk: true, ...push(),
-    description: `Beauty Rewards support journey, flow 2 – Push 2, 3 days before the period ends, if no qualifying order has been placed (${CRM}). Don't miss the opportunity to earn double Hearts.` }),
+  // 8. Ad hoc
+  step('8.1', 'Ad hoc emails', 0, H, { ...email(),
+    description: `Ad hoc journeys and communication (${CRM}). Educational content (new products, key brands such as NovAge+ and Wellosophy), holiday/seasonal and special offers (Black Friday, Christmas, Mother's Day, etc.), and launches of new programmes and digital tools. Regular ad hoc emails are usually sent in week 2 of each campaign as part of Campaign Support communication.` }),
+  step('8.2', 'Ad hoc reminders', 1, H, { ...push(['Push', 'SMS']),
+    description: `Ad hoc journeys – Push/SMS reminders as an additional channel in ad hoc journeys (${CRM}). WhatsApp only in pilot markets (ID, RO, PT).` }),
+
+  // 14. Birthday
+  step('14.1', 'Birthday offer', 0, F, { ...email(),
+    description: `Birthday journey – on the birthday (${CRM}). Birthday congratulations and birthday offer for Members and Brand Partners. A WhatsApp message for those who didn't open the email is available only in the pilot market (ID).` }),
 
   // 15. Reactivation
   step('15.1', 'Reactivation email – segment specific', 0, E1, { ...email(),
@@ -83,10 +99,6 @@ const nodes = [
   step('15.3', 'Inactivity alert for Sponsors', 0, E2, { ...email(),
     description: `Reactivation journey 2 – 8th day of each campaign in the UK (the ${CRM} gives the 11th day). Trigger, once per campaign: active Sponsors with downline members who are inactive for 3 campaigns, have an expiring Wallet balance, or are inactive Starters from the previous campaign. Reminder to motivate and support the downline, link to the activity report, and business tips on what to say. Manager alerts and a Business App push are listed as “to be added later”.` }),
 
-  // 14. Birthday
-  step('14.1', 'Birthday offer', 0, F, { ...email(),
-    description: `Birthday journey – on the birthday (${CRM}). Birthday congratulations and birthday offer for Members and Brand Partners. A WhatsApp message for those who didn't open the email is available only in the pilot market (ID).` }),
-
   // 16. Profile completion
   step('16.1', 'Complete your profile and general benefits', 0, G, { ...push(),
     description: `Profile completion journey (new, proposed) – Push to everyone with missing contact data, promoting profile completion and general benefits (UK version; the ${CRM} shows “Complete your profile and earn XYZ Hearts!”). Trigger: once per quarter, check for contacts missing date of birth, email or phone number (max 2 times per contact).` }),
@@ -95,11 +107,13 @@ const nodes = [
   step('16.3', 'Complete your profile (SMS)', 3, G + 250, { ...push(['SMS']), flag: 'Optional (if cost allows)',
     description: `Profile completion journey – SMS when only a phone number is available, optional if cost allows (${CRM}). “Complete your profile to receive tailored recommendations and exclusive perks.”` }),
 
-  // 8. Ad hoc
-  step('8.1', 'Ad hoc emails', 0, H, { ...email(),
-    description: `Ad hoc journeys and communication (${CRM}). Educational content (new products, key brands such as NovAge+ and Wellosophy), holiday/seasonal and special offers (Black Friday, Christmas, Mother's Day, etc.), and launches of new programmes and digital tools. Regular ad hoc emails are usually sent in week 2 of each campaign as part of Campaign Support communication.` }),
-  step('8.2', 'Ad hoc reminders', 1, H, { ...push(['Push', 'SMS']),
-    description: `Ad hoc journeys – Push/SMS reminders as an additional channel in ad hoc journeys (${CRM}). WhatsApp only in pilot markets (ID, RO, PT).` }),
+  // 17. Recognition – one congratulations email per career-title group
+  step('17.1', 'Congratulations – Brand Partner titles', 2, R1, { ...email(), audience: 'BrP',
+    description: `Recognition journey – tier-specific congratulations email for Brand Partner titles: Bronze, Silver, Gold and Platinum (${CRM2}). Recognises the new title the moment it is reached, makes the career path visible and motivates the Brand Partner towards the next tier.` }),
+  step('17.2', 'Congratulations – Manager titles', 2, R2, { ...email(), audience: 'BrP',
+    description: `Recognition journey – tier-specific congratulations email for Team Manager, Senior Team Manager and Director (${CRM2}).` }),
+  step('17.3', 'Congratulations – Director titles', 2, R3, { ...email(), audience: 'BrP',
+    description: `Recognition journey – tier-specific congratulations email for Gold, Sapphire, Diamond and Double Diamond Director, Executive Director, President Director and Senior President Director (${CRM2}). The example (President Director) lists the title’s benefits and links to a downloadable certificate.` }),
 ];
 
 const terminals = [
@@ -116,12 +130,15 @@ const terminals = [
   terminal('exit-16-none', 'Exit', 860, G + 210, { d: 90 }),
   terminal('exit-16', 'Exit · stamped for repetitive communication', 1980, G, { d: 150 }),
   start('t-8', 'Ad hoc', H, { tag: 'Launches, seasonal, education' }),
+  start('t-17', 'New career title reached', R2, { tag: 'Daily automation' }),
+  terminal('exit-17', 'Exit · logged as notified for this title', 1720, R2, { d: 150 }),
 ];
 
 const decisions = [
   decision('d-4-qualifying', 'Qualifying order placed?', 860, D2, { size: 120, notUk: true }),
   decision('d-16-missing', 'Missing data in the profile?', 860, G, { size: 120 }),
   decision('d-16-channel', 'Email or phone available?', 1110, G, { size: 120 }),
+  decision('d-17-title', 'Title check', 860, R2, { size: 120 }),
 ];
 
 const chain = (ids, timings) => ids.slice(1).map((to, i) => e(ids[i], to, { delay: timings[i] }));
@@ -159,6 +176,12 @@ const edges = [
 
   e('t-8', 'crm-8-1'),
   e('crm-8-1', 'crm-8-2', { label: 'Additional channel' }),
+
+  e('t-17', 'd-17-title'),
+  e('d-17-title', 'crm-17-1', { label: 'Brand Partner', labelAt: 0.7 }),
+  e('d-17-title', 'crm-17-2', { label: 'Manager', labelAt: 0.5 }),
+  e('d-17-title', 'crm-17-3', { label: 'Director', labelAt: 0.7 }),
+  ...['crm-17-1', 'crm-17-2', 'crm-17-3'].map((id) => e(id, 'exit-17')),
 ];
 
 // Pages with a screenshot in assets/screens/, named by reference number.
@@ -168,6 +191,7 @@ const SCREENSHOTS = new Set([
   'CRM-4.1', 'CRM-4.2', 'CRM-4.3',
   'CRM-14.1', 'CRM-15.1', 'CRM-15.2', 'CRM-15.3',
   'CRM-8.1', 'CRM-8.2',
+  'CRM-17.3',
 ]);
 
 finalize({ nodes, terminals, decisions, edges, screenshots: SCREENSHOTS });
@@ -178,7 +202,7 @@ export const crm = {
   status: 'ready',
   metrics: false, // hide visits, conversion and traffic sources/destinations until real data is available
   width: 3020,
-  height: 3520,
+  height: 4300,
   nodes,
   terminals,
   decisions,

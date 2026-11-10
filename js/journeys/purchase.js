@@ -13,6 +13,8 @@ import { artboard, finalize, FLOW_LEGEND } from './flow.js';
 const SY = 1.75;
 const { page, terminal, decision, ghostAt, frame, area, edge: e } = artboard({ ox: 0, oy: 0, sy: SY, pdfCardH: 64 });
 const CRM = 'CRM journeys overview (BCM markets) 2025';
+// Journeys 18 (Samples) and 19 (Advent Calendar) are journeys 2 and 3 of Part 2, numbered on from 17.
+const CRM2 = 'CRM journeys overview – Part 2, 2026';
 
 const POS = {}; // id → [cx, cy] in PDF coordinates, for elbow routing
 
@@ -221,10 +223,12 @@ const groups = [
   frame('f-checkout', 'CHECKOUT AS-IS', 9514, 1364, 12952, 2133),
   frame('f-bcm6', 'BCM 6.0', 7914, 2279, 12969, 3046),
   frame('f-bcm6-reg', 'New registration flow within checkout', 10501, 2494, 11288, 2863),
-  frame('lane-11', '11 · Abandoned basket journey – Members & End-consuming BrPs', 7914, 3130, 12969, 3470),
-  frame('lane-9', '9 · Post-purchase / Share & Earn journey', 7914, 3510, 12969, 3730),
-  frame('lane-10', '10 · NovAge+ support journey', 7914, 3770, 12969, 4330),
+  frame('lane-9', '9 · Post-purchase / Share & Earn journey', 7914, 3130, 12969, 3350),
+  frame('lane-10', '10 · NovAge+ support journey', 7914, 3390, 12969, 3950),
+  frame('lane-11', '11 · Abandoned basket journey – Members & End-consuming BrPs', 7914, 3990, 12969, 4330),
   frame('lane-12', '12 · Wellosophy CRM journey', 7914, 4370, 12969, 4810),
+  frame('lane-18', '18 · Samples (Part 2, journey 2) · Launching across relevant markets', 7914, 4850, 12969, 5300),
+  frame('lane-19', '19 · Advent Calendar (Part 2, journey 3) · EU timings shown', 7914, 5340, 12969, 5800),
 ];
 
 /* ---------------- CRM journeys 9–12 ---------------- */
@@ -232,18 +236,11 @@ const groups = [
 const crmStep = (ref, name, cx, cy, type, description, opts = {}) => P(`CRM-${ref}`, name, cx, cy, {
   id: `crm-${ref.replace('.', '-')}`, type, channels: opts.channels, flag: opts.flag, description,
 });
-const ROW = { ab: 3290, se: 3625, n1: 3895, nsms: 4030, n2: 4135, n3: 4245, w1: 4490, w2: 4615, w3: 4735 };
+// CRM lanes run in journey-number order: 9, 10, 11, 12, 18, 19.
+const ROW = { se: 3245, n1: 3515, nsms: 3650, n2: 3755, n3: 3865, ab: 4150, w1: 4490, w2: 4615, w3: 4735, sm1: 4955, sm2: 5190, ac: 5460, ac2: 5690 };
 const COL = (i) => 8560 + i * 420;
 
 nodes.push(
-  // 11. Abandoned basket
-  crmStep('11.1', '1st reminder', COL(0), ROW.ab, 'email',
-    `Abandoned basket journey – Email 1, 1 hour after the basket is abandoned (${CRM}). Abandoned basket reminder with dynamic benefits based on the products in the basket: NovAge+ loyalty programme, Expiry Wallet, 15% welcome discount and free delivery (4 versions). A Push/WhatsApp reminder in the Oriflame App is to be added later.`),
-  crmStep('11.2', '2nd reminder', COL(2), ROW.ab, 'email',
-    `Abandoned basket journey – Email 2, 2 days later, only if the basket is still abandoned (${CRM}). Reminder with pictures of the products in the basket and personalised product recommendations (up-sell). A Push/WhatsApp reminder is to be added later.`),
-  crmStep('11.3', 'Final reminder in Campaign Support last call', COL(3), ROW.ab, 'email',
-    `Abandoned basket journey – Email 3, 2 days before campaign end, only if the basket is still abandoned (${CRM}). A content block with the abandoned basket is added automatically to the Campaign Support journey's “Last call” email.`),
-
   // 9. Share & Earn
   crmStep('9.1', 'Share and Earn', COL(0), ROW.se, 'email',
     `Post-purchase / Share & Earn journey – Email 10–14 days after each purchase (market-specific timing), limited to once per campaign and once per product (${CRM}). Promotes Share & Earn benefits (versions for Members and Brand Partners), features up to 6 products from the purchase with Share & Earn and Leave a review links, plus sharing tips.`),
@@ -272,6 +269,14 @@ nodes.push(
   crmStep('10.10', 'Up-sell NovAge+ SET', COL(0), ROW.n3, 'email',
     `NovAge+ journey 3 – sent once after the 1st single NovAge+ product purchase (${CRM}). 1 of 9 email versions depending on the product: fixed SET communication if the product is part of a fixed SET, otherwise the Digital skin diagnosis tool.`),
 
+  // 11. Abandoned basket
+  crmStep('11.1', '1st reminder', COL(0), ROW.ab, 'email',
+    `Abandoned basket journey – Email 1, 1 hour after the basket is abandoned (${CRM}). Abandoned basket reminder with dynamic benefits based on the products in the basket: NovAge+ loyalty programme, Expiry Wallet, 15% welcome discount and free delivery (4 versions). A Push/WhatsApp reminder in the Oriflame App is to be added later.`),
+  crmStep('11.2', '2nd reminder', COL(2), ROW.ab, 'email',
+    `Abandoned basket journey – Email 2, 2 days later, only if the basket is still abandoned (${CRM}). Reminder with pictures of the products in the basket and personalised product recommendations (up-sell). A Push/WhatsApp reminder is to be added later.`),
+  crmStep('11.3', 'Final reminder in Campaign Support last call', COL(3), ROW.ab, 'email',
+    `Abandoned basket journey – Email 3, 2 days before campaign end, only if the basket is still abandoned (${CRM}). A content block with the abandoned basket is added automatically to the Campaign Support journey's “Last call” email.`),
+
   // 12. Wellosophy
   crmStep('12.1', 'Welcome and thank you, 1st-time Wellosophy buyer', COL(0), ROW.w1, 'email',
     `Wellosophy journey, 1st Wellosophy purchase – Email on Day 1 after purchase: welcome and thank 1st-time buyers, intro to benefits and recommendations on how to get the best result. Versions: default, meal replacement, Natural Balance, Wellness pack, Wellosophy skin (${CRM}).`),
@@ -285,6 +290,46 @@ nodes.push(
     `Wellosophy journey – business potential for Builders and Sellers, triggered by constantly showing specific behaviour. Work in progress; journey flow to be confirmed (${CRM}).`, { flag: 'WIP – flow TBC', channels: ['Email', 'Push'] }),
 );
 
+// 18. Samples and 19. Advent Calendar (CRM journeys overview – Part 2)
+const SAMPLE = (product, extra = '') => `Samples journey – Day 8 email (Day 12 in longer-delivery markets) for customers who bought a ${product} sample (${CRM2}). Encourages the full-size purchase and introduces complementary products. Customers need a valid email and marketing consent; when several samples are bought the same day, only the highest-priority journey is sent, full-size owners are skipped where applicable, and nobody enters the same journey twice.${extra}`;
+const ADVENT = (n, when, extra = '') => `Advent Calendar journey – Email ${n}, ${when} (${CRM2}). Triggered by a consented waitlist sign-up and timed to the campaign calendar; dates shown are for EU markets (CIS one campaign later).${extra}`;
+
+nodes.push(
+  crmStep('18.1', 'NovAge ProCeuticals sample (priority 1)', COL(0), ROW.sm2, 'email',
+    SAMPLE('NovAge ProCeuticals', ' “Take the next step towards renewed-looking skin”.')),
+  crmStep('18.2', 'NovAge Day/Night Cream sample (priority 2)', COL(1), ROW.sm2, 'email',
+    SAMPLE('NovAge Day or Night Cream', ' “Continue your anti-ageing care”.')),
+  crmStep('18.3', 'Possess Intense sample (priority 3)', COL(2), ROW.sm2, 'email',
+    SAMPLE('Possess Intense', ' “From first impression to lasting obsession”.')),
+  crmStep('18.4', 'Diamonds sample – Cream (priority 4)', COL(3), ROW.sm2, 'email',
+    SAMPLE('Diamond Cellular Anti-Ageing Cream', ' Diamonds Cream version: “The essence of timeless luxury”.')),
+  crmStep('18.5', 'Diamonds sample – Concentrate (priority 4)', COL(4), ROW.sm2, 'email',
+    SAMPLE('Diamond Cellular Night Concentrate', ' Diamonds Concentrate version: “Wrap your skin in rare overnight indulgence”.')),
+  crmStep('18.6', 'Diamonds sample – Default (priority 4)', COL(5), ROW.sm2, 'email',
+    SAMPLE('Diamonds', ' Diamonds default version: “The refined art of timeless skin”.')),
+  crmStep('18.7', 'Giordani Gold sample', COL(6), ROW.sm2, 'email',
+    SAMPLE('Giordani Gold', ' “Some first impressions deserve a second look”. Template supplied; Giordani Gold is not in the priority list.')),
+
+  crmStep('19.1', 'Good things come to those on the waiting list', COL(0), ROW.ac, 'email',
+    ADVENT(1, 'on entry after sign-up (retried after 2 hours if not sent)')),
+  crmStep('19.2', 'For evenings that deserve a little extra sparkle', COL(1), ROW.ac, 'email',
+    ADVENT(2, '1 day after week 2 of C13 starts', ' First product reveals.')),
+  crmStep('19.3', 'The beauty of a well-curated countdown', COL(2), ROW.ac, 'email',
+    ADVENT(3, '1 day after week 3 of C13 starts', ' More product reveals.')),
+  crmStep('19.4', 'A beauty countdown with serious value', COL(3), ROW.ac, 'email',
+    ADVENT(4, '2 days after C14 starts', ' The calendar’s value and reasons to buy.')),
+  crmStep('19.5', 'The reactions say more than we ever could', COL(4), ROW.ac, 'email',
+    ADVENT(5, '1 day after week 2 of C14 starts', ' Reactions to the calendar.')),
+  crmStep('19.6', 'Not everyone gets this email', COL(5), ROW.ac, 'email',
+    ADVENT(6, '4 days before C15 starts', ' Priority access begins tomorrow.')),
+  crmStep('19.7', 'The Advent Calendar doors are open for you', COL(6), ROW.ac, 'email',
+    ADVENT(7, '3 days before C15 starts', ' Exclusive early access with a promo code and how to use it at checkout.')),
+  crmStep('19.8', 'December is looking brighter already', COL(0), ROW.ac2, 'email',
+    ADVENT(8, 'sent automatically after an Advent Calendar purchase by a separate journey', ' Confirms the purchase.')),
+  crmStep('19.9', 'The wait is over. So is the thinking time', COL(8), ROW.ac, 'email',
+    ADVENT(9, '1 day before C15 starts, to contacts who have not bought the calendar', ' Last call with the promo code before priority access ends.')),
+);
+
 terminals.push(
   terminal('t-9', 'Purchase made', 8150, ROW.se, { d: 120 }),
   terminal('t-10-1', '1st NovAge+ SET purchase', 8150, ROW.n1, { d: 130 }),
@@ -293,12 +338,18 @@ terminals.push(
   terminal('t-12-1', '1st Wellosophy purchase', 8150, ROW.w1, { d: 120 }),
   terminal('t-12-2', 'Never bought or stopped buying', 8150, ROW.w2, { d: 120 }),
   terminal('t-12-3', 'Constantly showing specific behaviour', 8150, ROW.w3, { d: 120 }),
+  terminal('t-18', 'Sample product ordered', 8150, ROW.sm1, { d: 120 }),
+  terminal('t-19', 'Advent Calendar waitlist sign-up', 8150, ROW.ac, { d: 120 }),
+  terminal('t-19-8', 'Advent Calendar purchased', 8150, ROW.ac2, { d: 120 }),
+  terminal('exit-19', 'Exit · Email 8 comes from the purchase journey', COL(7), ROW.ac2, { d: 120 }),
   terminal('exit-11', 'Exit', COL(1) + 20, ROW.ab + 115, { d: 80 }),
   terminal('t-12-regular', 'Regular campaign Wellosophy communication', COL(3), (ROW.w1 + ROW.w2) / 2, { d: 150 }),
 );
 
 const decisions = [
   decision('d-abandoned', 'Basket abandoned?', 8150, ROW.ab, { size: 110 }),
+  decision('d-18-sample', 'Consent and sample priority check (daily)', COL(0), ROW.sm1, { size: 110 }),
+  decision('d-19-purchased', 'Advent Calendar purchased?', COL(7), ROW.ac, { size: 110 }),
   decision('d-still-abandoned', 'Still abandoned?', COL(1) + 20, ROW.ab, { size: 110 }),
 ];
 
@@ -423,7 +474,7 @@ const edges = [
   e('crm-11-2', 'crm-11-3', { delay: { wait: '2 days', day: 'before campaign end' } }),
 
   // Purchase-triggered journeys – from the order confirmation
-  ...['t-9', 't-10-1', 't-10-2', 't-10-3', 't-12-1', 't-12-2', 't-12-3'].map((t) => e('p-45', t, {
+  ...['t-9', 't-10-1', 't-10-2', 't-10-3', 't-12-1', 't-12-2', 't-12-3', 't-18'].map((t) => e('p-45', t, {
     fromSide: 'b', via: [[12066, 3088], [7880, 3088], [7880, 0]],
   })),
 
@@ -451,6 +502,24 @@ const edges = [
   e('crm-12-3', 'crm-12-4', { delay: { wait: 'Day X', day: 'if not engaged' } }),
   e('crm-12-4', 't-12-regular'),
   e('t-12-3', 'crm-12-5'),
+
+  // 18. Samples – Day 8 email by sample bought (Day 12 in longer-delivery markets)
+  e('t-18', 'd-18-sample', { delay: { wait: 'Day 8', day: 'Day 12 in longer-delivery markets' } }),
+  ...['18-1', '18-2', '18-3', '18-4', '18-5', '18-6', '18-7'].map((s) => e('d-18-sample', `crm-${s}`, { fromSide: 'b', toSide: 't' })),
+
+  // 19. Advent Calendar – from the Advent Calendar page's waitlist sign-up
+  e('p-29', 't-19', { fromSide: 'b', via: [[4018, ROW.ac]], label: 'Join the waitlist', labelAt: 0.6 }),
+  e('t-19', 'crm-19-1', { delay: { wait: 'On entry', day: 'retry after 2 hours' } }),
+  e('crm-19-1', 'crm-19-2', { delay: { wait: 'Mid C13', day: 'week 2 + 1 day' } }),
+  e('crm-19-2', 'crm-19-3', { delay: { wait: 'Late C13', day: 'week 3 + 1 day' } }),
+  e('crm-19-3', 'crm-19-4', { delay: { wait: 'Early C14', day: '2 days in' } }),
+  e('crm-19-4', 'crm-19-5', { delay: { wait: 'Mid C14', day: 'week 2 + 1 day' } }),
+  e('crm-19-5', 'crm-19-6', { delay: { wait: 'Before C15', day: '4 days before' } }),
+  e('crm-19-6', 'crm-19-7', { delay: { wait: 'Before C15', day: '3 days before' } }),
+  e('crm-19-7', 'd-19-purchased', { delay: { wait: '1 day before C15' } }),
+  e('d-19-purchased', 'crm-19-9', { label: 'No' }),
+  e('d-19-purchased', 'exit-19', { fromSide: 'b', toSide: 't', label: 'Yes' }),
+  e('t-19-8', 'crm-19-8', { label: 'Separate journey' }),
 ];
 
 // Screenshots in assets/screens/ (redacted web JPEGs), named by reference number.
@@ -459,6 +528,8 @@ const SCREENSHOTS = new Set([
   'R-2', 'R-4', 'R-5', 'R-39', 'R-40', 'R-45',
   'CRM-9.1', 'CRM-10.2', 'CRM-10.3', 'CRM-10.4', 'CRM-10.5', 'CRM-10.6', 'CRM-10.9', 'CRM-10.10',
   'CRM-11.1', 'CRM-11.3', 'CRM-12.1', 'CRM-12.2', 'CRM-12.3', 'CRM-12.4',
+  ...[1, 2, 3, 4, 5, 6, 7].map((i) => `CRM-18.${i}`),
+  ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => `CRM-19.${i}`),
 ]);
 
 finalize({ nodes, terminals, ghosts, decisions, groups, edges, screenshots: SCREENSHOTS, usability: USABILITY.purchase });
@@ -469,7 +540,7 @@ export const purchase = {
   status: 'ready',
   metrics: false, // hide visits, conversion and traffic sources/destinations until real data is available
   width: 13200,
-  height: 8520,
+  height: 10300,
   nodes,
   terminals,
   ghosts,

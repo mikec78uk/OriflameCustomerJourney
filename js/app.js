@@ -998,6 +998,10 @@ function statList(rows, { bars = true } = {}) {
 
 function renderDetail(node) {
   const d = node.detail;
+  // Challenges and Opportunities only appear when they have real content (not the TBD placeholder).
+  const hasContent = (n) => n && n.text !== 'TBD';
+  const challenges = (d.challenges || []).filter(hasContent);
+  const opportunities = (d.opportunities || []).filter(hasContent);
   const title = node.fullName || node.name;
 
   // Only pages with a screenshot show the image column; the rest get a narrower, text-only flyout.
@@ -1029,17 +1033,17 @@ function renderDetail(node) {
     <section class="section"><h3 class="section__title">Key Behaviour</h3>${statList(d.keyBehaviour)}</section>
     <section class="section"><h3 class="section__title">Where did customers come from?</h3>${statList(d.cameFrom)}</section>
     <section class="section"><h3 class="section__title">Where did they go next?</h3>${statList(d.wentNext)}</section>` : ''}
-    <section class="section"><h3 class="section__title">Challenges</h3><div class="notes">
-      ${d.challenges.map((c) => (c.kind === 'usability'
+    ${challenges.length ? `<section class="section"><h3 class="section__title">Challenges</h3><div class="notes">
+      ${challenges.map((c) => (c.kind === 'usability'
     // Usability-testing findings: evidence per market (circular flags), an optional participant quote, the study as source.
     ? `<div class="note note--challenge note--ux"><span class="note__title">${escapeHtml(c.title)}</span><span>${escapeHtml(c.text)}</span>
         ${c.quote ? `<q class="note__quote">${escapeHtml(c.quote)}</q>` : ''}
         <span class="note__ux">${evidenceRow(c.evidence)}<span class="note__meta">${ICONS.person} ${escapeHtml(c.source)}</span></span></div>`
     : `<div class="note note--challenge">${c.title ? `<span class="note__title">${escapeHtml(c.title)}</span>` : ''}<span>${escapeHtml(c.text)}</span>${c.source ? `<span class="note__meta">${escapeHtml(c.source)}</span>` : ''}</div>`)).join('')}
-    </div></section>
-    <section class="section"><h3 class="section__title">Opportunities</h3><div class="notes">
-      ${d.opportunities.map((o) => `<div class="note note--opportunity">${o.title ? `<span class="note__title">${escapeHtml(o.title)}</span>` : ''}<span>${escapeHtml(o.text)}</span></div>`).join('')}
-    </div></section>`;
+    </div></section>` : ''}
+    ${opportunities.length ? `<section class="section"><h3 class="section__title">Opportunities</h3><div class="notes">
+      ${opportunities.map((o) => `<div class="note note--opportunity">${o.title ? `<span class="note__title">${escapeHtml(o.title)}</span>` : ''}<span>${escapeHtml(o.text)}</span></div>`).join('')}
+    </div></section>` : ''}`;
 
   const nodes = state.journey.nodes;
   const idx = nodes.indexOf(node);
