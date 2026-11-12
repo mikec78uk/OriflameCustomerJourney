@@ -3,6 +3,7 @@
 // Coordinates are PDF artboard pixels (rendered at 4626 × 938). R-19, R-25 and R-35 are the same pages
 // as in the Registration journey, so they keep their R- references and screenshots.
 
+import { AUDIT, REVIEWED } from './audit.js';
 import { HIGHLIGHTS } from './highlights.js';
 import { artboard, finalize, FLOW_LEGEND, SOURCE as source } from './flow.js';
 
@@ -79,7 +80,7 @@ const edges = [
 // Screenshots in assets/screens/ (redacted web JPEGs), named by reference number.
 const SCREENSHOTS = new Set(['NL-1', 'NL-2', 'NL-3', 'NL-4.1', 'NL-4.2', 'NL-5', 'NL-6', 'NL-7', 'NL-8', 'R-19', 'R-25', 'R-35']);
 
-finalize({ nodes, terminals, ghosts, edges, screenshots: SCREENSHOTS });
+finalize({ nodes, terminals, ghosts, edges, screenshots: SCREENSHOTS, audit: AUDIT.newsletter || {}, reviewed: REVIEWED.newsletter });
 
 export const newsletter = {
   id: 'newsletter',

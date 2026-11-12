@@ -3,7 +3,7 @@
 //   Portugal tests BCM 6.0 (Registration and Brand Partner Training tabs).
 // - "Shopping-Checkout-Journeys-Usability-Report.pptx": UK and Poland test guest checkout, Portugal tests the
 //   BCM 6.0 checkout with a required account (Purchase tab; Portugal's basket and account findings sit on the
-//   BCM 6.0 lane). "Also observed: check in QA" items are left out.
+//   BCM 6.0 lane). Its "Also observed: check in QA" items are included with `qa: true` (lower priority).
 // Only frictions are recorded – things that worked are left out. Counts only, no participant IDs.
 //
 // USABILITY[journey][ref or step id] lists findings shown with that step's challenges (and counted in its Findings).
@@ -323,6 +323,17 @@ USABILITY.purchase = {
   ],
 };
 
+// "Also observed: check in QA" items from the shopping and checkout report (lower priority).
+const QA = (title, text, market, evidence = 'Observed') => ({ title, text, evidence: [[market, evidence]], qa: true });
+const addQa = (key, item) => { USABILITY.purchase[key] = [...(USABILITY.purchase[key] || []), item]; };
+addQa('P-14', QA('“Moisturisers” lists tablets and wellness packs', 'The moisturiser listing includes tablets and wellness packs.', 'UK'));
+addQa('P-35', QA('Newly added product missing from the basket', 'A product that had just been added did not appear in the basket, so the shopper added it again.', 'UK'));
+addQa('g-recipient', QA('Few gifts to choose from', '“Gifts for her” had few items to choose from.', 'UK'));
+addQa('fr-family', QA('Fragrance family names and listing videos unclear', 'Fragrance family names, and the videos on fragrance listings, were not understood.', 'PL'));
+addQa('P-36', QA('Phone-number verification not understood', 'A shopper did not understand the phone-number verification step.', 'PL'));
+addQa('P-39', QA('Postcode field and saving the address', 'The postal-code field did not accept input at first, and the address must be saved to continue – one shopper asked why.', 'PL'));
+addQa('P-44', QA('“Information from a Brand Partner” checkbox goes unnoticed', 'Only one participant noticed the checkbox for information from a Brand Partner; that participant then received a text message naming a Brand Partner.', 'PT'));
+
 export const USABILITY_OVERVIEW = {
   A1: {
     items: [
@@ -375,6 +386,7 @@ export const USABILITY_OVERVIEW = {
     ],
     general: [
       { evidence: [['PT', 'Observed']], text: 'The Instagram and social-post module did not load; shoppers saw grey boxes and thought something was wrong.' },
+      { evidence: [['UK', 'Observed']], text: 'Check in QA: a search for “skincare” showed a deodorant first.' },
     ],
   },
   F: {
@@ -404,6 +416,7 @@ export const USABILITY_OVERVIEW = {
     general: [
       { evidence: [['PL', '3/10']], text: 'A “Premium” 23% discount appeared with no explanation.' },
       { evidence: [['PT', 'Observed']], text: 'The BCM 6.0 upsell step showed the products again and felt like a step back; the delivery step said “Free shipping” next to a €5 charge.' },
+      { evidence: [['PT', 'Observed']], text: 'Check in QA: typing an address partly filled the field above it, and the site doesn’t say that delivery is to Portugal only.' },
     ],
   },
 };

@@ -5,6 +5,7 @@
 // Journey 17 (Recognition) is from "CRM journeys overview – Part 2 (MM and BCM markets) 2026", where it is
 // journey 1; Part 2 restarts its numbering, so its journeys continue from 17 here.
 
+import { AUDIT, REVIEWED } from './audit.js';
 import { artboard, finalize, FLOW_LEGEND, NOT_UK_LEGEND } from './flow.js';
 
 const { page, terminal, decision, banner, edge: e } = artboard({ ox: 0, oy: 0 });
@@ -194,7 +195,7 @@ const SCREENSHOTS = new Set([
   'CRM-17.3',
 ]);
 
-finalize({ nodes, terminals, decisions, edges, screenshots: SCREENSHOTS });
+finalize({ nodes, terminals, decisions, edges, screenshots: SCREENSHOTS, audit: AUDIT.crm || {}, reviewed: REVIEWED.crm });
 
 export const crm = {
   id: 'crm',

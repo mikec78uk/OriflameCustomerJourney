@@ -4,6 +4,7 @@
 // Coordinates are PDF artboard pixels (rendered at 4626 × 1818). R-2 and R-35 are the same pages as in the
 // Registration journey; R-35 uses a screenshot taken for this flow (R-35-training).
 
+import { AUDIT, REVIEWED } from './audit.js';
 import { HIGHLIGHTS } from './highlights.js';
 import { USABILITY } from './usability.js';
 import { artboard, finalize, FLOW_LEGEND, SOURCE as source } from './flow.js';
@@ -17,7 +18,7 @@ const nodes = [
     ...BrP,
     challenges: [{
       title: 'No way to connect',
-      text: 'There is no direct connection from My Account (Dashboard) (R-35) to Connect with leaders.',
+      text: 'There is no direct route from My Account (Dashboard) (R-35) to Connect with leaders, so new Brand Partners told to connect with their leader can’t find where to do it.',
       source,
     }],
   }),
@@ -86,7 +87,7 @@ const edges = [
 // Screenshots in assets/screens/ (redacted web JPEGs), named by reference number.
 const SCREENSHOTS = new Set([...Array.from({ length: 15 }, (_, i) => `O-${i + 1}`), 'R-2']);
 
-finalize({ nodes, terminals, edges, screenshots: SCREENSHOTS, usability: USABILITY.training });
+finalize({ nodes, terminals, edges, screenshots: SCREENSHOTS, usability: USABILITY.training, audit: AUDIT.training || {}, reviewed: REVIEWED.training });
 
 export const training = {
   id: 'brand-partner-training',

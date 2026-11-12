@@ -5,6 +5,7 @@
 // Coordinates are the PDF artboard rendered at 13180 × 4602. Its boxes are 240 × 64, so the artboard is
 // stretched vertically (sy) to fit our cards while keeping every box centred on its source position.
 
+import { AUDIT, REVIEWED } from './audit.js';
 import { HIGHLIGHTS } from './highlights.js';
 import { USABILITY } from './usability.js';
 import { FUNNELS } from './funnels.js';
@@ -27,7 +28,7 @@ function P(ref, name, cx, cy, opts = {}) {
 // Unreferenced navigation step (no reference in the source).
 function N(id, name, cx, cy, description) {
   POS[id] = [cx, cy];
-  return { ...page('', name, cx - 120, cy - 32, { id, description }), ref: null };
+  return { ...page('', name, cx - 120, cy - 32, { id, description }), ref: null, menu: true };
 }
 // Collapsed group of product listing subpages, e.g. "x11 PLP Subpages".
 function S(id, label, cx, cy) {
@@ -532,7 +533,7 @@ const SCREENSHOTS = new Set([
   ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => `CRM-19.${i}`),
 ]);
 
-finalize({ nodes, terminals, ghosts, decisions, groups, edges, screenshots: SCREENSHOTS, usability: USABILITY.purchase });
+finalize({ nodes, terminals, ghosts, decisions, groups, edges, screenshots: SCREENSHOTS, usability: USABILITY.purchase, audit: AUDIT.purchase || {}, reviewed: REVIEWED.purchase });
 
 export const purchase = {
   id: 'purchase',

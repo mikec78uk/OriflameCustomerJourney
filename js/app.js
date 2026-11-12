@@ -109,9 +109,10 @@ const DEFAULT_LEGEND = [
 ];
 
 function renderLegend(journey) {
-  const items = journey.legend || DEFAULT_LEGEND;
+  // Every journey also explains the review status shown on each card.
+  const items = [...(journey.legend || DEFAULT_LEGEND), { kind: 'review-clear', label: 'No issues recorded' }, { kind: 'review-pending', label: 'Not yet reviewed' }];
   dom.legendItems.innerHTML = items.map((i) => `<span class="legend__item"><span class="legend__swatch legend__swatch--${i.kind}">${
-    { finding: '⚠', 'aud-m': 'M', 'aud-brp': 'BrP', delay: ICONS.clock, ux: ICONS.person }[i.kind] || ''}</span>${escapeHtml(i.label)}</span>`).join('');
+    { finding: '⚠', 'aud-m': 'M', 'aud-brp': 'BrP', delay: ICONS.clock, ux: ICONS.person, 'review-clear': '✓', 'review-pending': '○' }[i.kind] || ''}</span>${escapeHtml(i.label)}</span>`).join('');
 }
 
 function selectJourney(id, { intro = true, openNode = null } = {}) {
@@ -300,6 +301,13 @@ const GA_ROWS = [
 ];
 
 const findingsLabel = (f) => (typeof f === 'number' ? `${f} Finding${f === 1 ? '' : 's'}` : `${f} Findings`);
+// Review status shown on every step, so a step without findings is never read as "fine" by default.
+const REVIEW_LABEL = { clear: 'No issues recorded', pending: 'Not yet reviewed' };
+const statusLabel = (node) => (node.review === 'findings' ? findingsLabel(node.findings) : REVIEW_LABEL[node.review] || REVIEW_LABEL.pending);
+const STATUS_NOTE = {
+  clear: 'Reviewed in the journey audit – no issues recorded for this step.',
+  pending: 'Not yet reviewed – this step was outside the journey audit and usability testing.',
+};
 const audienceClass = (a) => `aud aud--${a.code.toLowerCase()}`;
 
 // Channel chips for CRM sends: an explicit list, or implied by the step type.
@@ -535,7 +543,7 @@ function buildCanvas(journey) {
     const metrics = journey.metrics !== false;
     const summary = metrics ? `${node.visits} visits, ${node.rate} to ${node.next}, `
       : node.stats ? `${fmtCount(node.stats.users)} users, ` : '';
-    card.setAttribute('aria-label', `${title}: ${summary}${findingsLabel(node.findings)}. Open detail.`);
+    card.setAttribute('aria-label', `${title}: ${summary}${statusLabel(node)}. Open detail.`);
     if (!metrics) card.classList.add('card--no-metrics');
     place(card, node);
     card.innerHTML = `
@@ -550,7 +558,7 @@ function buildCanvas(journey) {
         <span class="card__meter"><span data-w="${parseFloat(node.rate) || 0}"></span></span>` : ''}
         ${!metrics && node.stats ? `<span class="card__stat" title="Google Analytics total users, change ${STATS_PERIOD.comparison}">
           <strong>${fmtCount(node.stats.users)}</strong> users ${node.stats.usersChange != null ? changeBadge(node.stats.usersChange) : ''}</span>` : ''}
-        <span class="card__findings${typeof node.findings === 'number' ? '' : ' is-tbd'}"><span aria-hidden="true">⚠</span> ${escapeHtml(findingsLabel(node.findings))}${node.hasUsability ? `<span class="card__ux" title="Includes usability testing findings">${ICONS.person}</span>` : ''}</span>
+        <span class="card__findings card__findings--${node.review}"><span aria-hidden="true">${{ findings: '⚠', clear: '✓', pending: '○' }[node.review] || '○'}</span> ${escapeHtml(statusLabel(node))}${node.hasUsability ? `<span class="card__ux" title="Includes usability testing findings">${ICONS.person}</span>` : ''}</span>
       </span>`;
     card.addEventListener('click', (ev) => {
       if (dragState.suppressClick) { ev.preventDefault(); return; }
@@ -1023,6 +1031,8 @@ function renderDetail(node) {
     <h2 class="detail__title" id="fly-title">${escapeHtml(title)}${d.placeholder ? '<span class="tag">Placeholder data</span>' : ''}</h2>
     ${node.notUk ? `<p class="not-uk-notice"><span aria-hidden="true">⊘</span> Not available in the UK. This step is part of the CRM journey in other BCM markets and is shown for reference only.</p>` : ''}
     <p class="detail__desc">${escapeHtml(d.description)}</p>
+    ${node.flow && node.review !== 'findings' ? `<p class="detail__status detail__status--${node.review}">${escapeHtml(STATUS_NOTE[node.review] || STATUS_NOTE.pending)}</p>` : ''}
+    ${node.flow && !d.screenshot ? `<p class="detail__shot-note">${escapeHtml(d.shotNote || 'Screenshot not yet supplied.')}</p>` : ''}
     ${node.stats && state.journey.metrics === false ? `
     <section class="section"><h3 class="section__title">Key Behaviour</h3>
       <p class="section__note">${escapeHtml(STATS_PERIOD.source)} · ${escapeHtml(STATS_PERIOD.dateRange)} · change ${escapeHtml(STATS_PERIOD.comparison)}</p>

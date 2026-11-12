@@ -127,8 +127,10 @@ export function artboard({ ox = 60, oy = 60, metrics = false, sy = 1, pdfCardH =
 }
 
 // Fills in card summaries and flyout detail from the flow itself.
-// `usability` (from usability.js, keyed by reference) adds usability-testing findings to each step's challenges.
-export function finalize({ nodes, terminals = [], triggers = [], ghosts = [], decisions = [], groups = [], edges, screenshots = new Set(), describeTerminal = {}, usability = {} }) {
+// `audit` (audit.js) and `usability` (usability.js), keyed by step id or reference, add journey-audit and
+// usability-testing findings to each step's challenges; `reviewed(node)` says whether the step is in the audit's
+// scope, giving every step a review status (findings / no issues recorded / not yet reviewed).
+export function finalize({ nodes, terminals = [], triggers = [], ghosts = [], decisions = [], groups = [], edges, screenshots = new Set(), describeTerminal = {}, usability = {}, audit = {}, reviewed = () => false }) {
   const byId = new Map([...nodes, ...terminals, ...triggers, ...ghosts, ...decisions, ...groups].map((x) => [x.id, x]));
   const isPage = (id) => nodes.some((n) => n.id === id);
   const pageLabel = (n) => `${n.ref ? `${n.ref} ${n.name}` : n.name}${n.notUk ? ' – not in UK' : ''}`;
@@ -170,7 +172,13 @@ export function finalize({ nodes, terminals = [], triggers = [], ghosts = [], de
     n.next = uniqueOuts.length === 1 && isPage(uniqueOuts[0]) ? byId.get(uniqueOuts[0]).name : TBD;
     // Keyed by step id (for unreferenced or duplicated steps) or by reference.
     const ux = usability[n.id] || (n.ref && usability[n.ref]) || [];
-    n.challenges = [...n.challenges, ...ux.map((u) => ({ ...u, kind: 'usability', source: `${USABILITY_STUDY.source} · ${USABILITY_STUDY.date}` }))];
+    const au = audit[n.id] || (n.ref && audit[n.ref]) || [];
+    n.challenges = [
+      ...n.challenges,
+      ...au.map((a) => ({ ...a, kind: 'audit', source: a.basis === 'stakeholder' ? `Reported by stakeholders (earlier review) · Area ${a.area}` : `Journey audit · Area ${a.area}` })),
+      ...ux.map((u) => ({ ...u, kind: 'usability', source: `${USABILITY_STUDY.source} · ${USABILITY_STUDY.date}${u.qa ? ' · check in QA' : ''}` })),
+    ];
+    n.review = n.challenges.length ? 'findings' : reviewed(n) ? 'clear' : 'pending';
     n.hasUsability = ux.length > 0;
     n.uxCount = ux.length;
     // Friction severity for the map: the largest share of participants affected ("6/10" → 0.6; "Observed" counts as 0.4).
@@ -185,6 +193,8 @@ export function finalize({ nodes, terminals = [], triggers = [], ghosts = [], de
       screenshot: n.screenshot === false ? null
         : n.screenshot ? `assets/screens/${n.screenshot}.jpg`
         : n.ref && screenshots.has(n.ref) ? `assets/screens/${n.ref}.jpg` : null,
+      // Why a step has no image: menu levels from the site map are never captured; other pages are still to come.
+      shotNote: n.menu ? 'Menu level in the site map – no screenshot needed.' : 'Screenshot not yet supplied.',
       // Journey-specific text first, then the shared description for the page's screenshot, reference or id.
       description: n.description || DESCRIPTIONS[n.screenshot] || DESCRIPTIONS[n.ref] || DESCRIPTIONS[n.id] || TBD,
       keyBehaviour: [

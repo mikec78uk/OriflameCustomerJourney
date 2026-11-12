@@ -6,6 +6,7 @@
 // The end of the flow (welcome emails broken out + CRM email sequence) follows a later update
 // to the source, placed on the same grid.
 
+import { AUDIT, REVIEWED } from './audit.js';
 import { HIGHLIGHTS } from './highlights.js';
 import { USABILITY } from './usability.js';
 import { FUNNELS } from './funnels.js';
@@ -32,21 +33,21 @@ const nodes = [
   page(2, 'UK Home', 920, 616),
   page(3, 'Sign Up', 1560, 616),
   page(4, 'Sign In', 1560, 892, {
-    challenges: [{ title: 'No access', text: 'There is no direct connection from Sign In to Sign Up (R-3).', source }],
+    challenges: [{ title: 'No route from Sign In to Sign Up', text: 'Sign In has no direct link to Sign Up (R-3), so visitors who start from the account icon – where many expect to register – can’t easily switch to creating an account.', source }],
   }),
   page(5, 'Become a member', 1912, 892, {
-    flag: 'R-5 is a barrier',
-    challenges: [{ title: 'Barrier', text: 'R-5 is a barrier.', source }],
+    flag: 'Barrier: extra page before the form',
+    challenges: [{ title: 'Barrier: an extra page before the form', text: 'This VIP landing page sits between deciding to join and the registration form (R-6). It is one of several near-identical pages people reach depending on where they clicked, and repeats the VIP or Beauty Entrepreneur choice before any details are entered.', source }],
   }),
   page(6, 'Register', 2264, 892, { audience: 'M' }),
   page(7, 'Support Center', 2264, 1478, {
-    challenges: [{ title: 'No direct way back', text: 'There is no direct way back from Support Center to Register (R-6).', source }],
+    challenges: [{ title: 'No way back to the form', text: 'Support Center has no direct route back to Register (R-6), so someone who looks for help part-way through registration has to find their own way back and may lose their place.', source }],
   }),
   page(8, 'Register as a Beauty Entrepreneur', 2264, 488, { audience: 'BrP' }),
   page(9, 'Search (Sign up / Register / Account)', 1560, 1492),
   page(10, 'Become a business owner', 2082, 1185, {
-    flag: 'R-10 is a barrier',
-    challenges: [{ title: 'Barrier', text: 'R-10 is a barrier.', source }],
+    flag: 'Barrier: extra page before the form',
+    challenges: [{ title: 'Barrier: an extra page before the form', text: 'This Beauty Entrepreneur landing page sits between deciding to join and the registration form (R-8). It is one of several near-identical pages people reach depending on where they clicked, and offers a “Compare VIP + Beauty Entrepreneur” detour before any details are entered.', source }],
   }),
 
   // Member registration
@@ -65,8 +66,7 @@ const nodes = [
   page(23, 'Profile Settings', 5434, 1133, { audience: 'M' }),
   page(24, 'General', 5756, 1133, {
     audience: 'M',
-    flag: 'Brand Partner Number',
-    challenges: [{ title: 'Brand Partner Number', text: 'Brand Partner Number.', source }],
+    flag: 'Unexplained Brand Partner number',
   }),
   page(25, 'What’s New', 4811, 1133, { audience: 'M' }),
   page(26, 'Order Management [Voucher Centre]', 4808, 1326, { audience: 'M' }),
@@ -299,7 +299,7 @@ const edges = [
 // CRM emails (E-n) have no screenshots yet.
 const SCREENSHOTS = new Set(Array.from({ length: 50 }, (_, i) => `R-${i + 1}`));
 
-finalize({ nodes, terminals, triggers, decisions, edges, screenshots: SCREENSHOTS, describeTerminal: { 'end-brp': 'Becomes a Brand Partner (BrP)' }, usability: USABILITY.registration });
+finalize({ nodes, terminals, triggers, decisions, edges, screenshots: SCREENSHOTS, describeTerminal: { 'end-brp': 'Becomes a Brand Partner (BrP)' }, usability: USABILITY.registration, audit: AUDIT.registration || {}, reviewed: REVIEWED.registration });
 
 // Step ids r-a … r-b, for highlight areas.
 const REFS = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => `r-${a + i}`);

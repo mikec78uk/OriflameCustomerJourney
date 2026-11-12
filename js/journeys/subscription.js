@@ -2,6 +2,7 @@
 // Coordinates are PDF artboard pixels (rendered at 5120 × 852); page x/y are the card's top-left corner.
 // Final-deliverable content: anything not yet known is shown as TBD.
 
+import { AUDIT, REVIEWED } from './audit.js';
 import { HIGHLIGHTS } from './highlights.js';
 import { artboard, finalize, FLOW_LEGEND } from './flow.js';
 
@@ -89,7 +90,7 @@ const edges = [
 // Screenshots in assets/screens/ (redacted web JPEGs), named by reference number.
 const SCREENSHOTS = new Set(Array.from({ length: 13 }, (_, i) => `S-${i + 1}`));
 
-finalize({ nodes, terminals, edges, screenshots: SCREENSHOTS });
+finalize({ nodes, terminals, edges, screenshots: SCREENSHOTS, audit: AUDIT.subscription || {}, reviewed: REVIEWED.subscription });
 
 export const subscription = {
   id: 'subscription',
